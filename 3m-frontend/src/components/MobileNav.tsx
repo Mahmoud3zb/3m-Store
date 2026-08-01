@@ -28,8 +28,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   ]
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md md:hidden pointer-events-none">
-      <div className="flex justify-around items-center bg-white/70 backdrop-blur-xl border border-white/30 py-3 px-6 rounded-full shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] pointer-events-auto">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[88%] max-w-sm md:hidden pointer-events-none">
+      <div className="flex justify-around items-center bg-white/80 backdrop-blur-xl border border-white/40 py-2 px-4 rounded-full shadow-[0_6px_24px_0_rgba(0,0,0,0.08)] pointer-events-auto">
         {tabs.map(({ id, Icon, badge, isFloating }) => {
           const isActive = activeTab === id
           if (isFloating) {
@@ -37,7 +37,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               <button
                 key={id}
                 onClick={() => onTabChange(id)}
-                className="relative -top-5 bg-black hover:bg-neutral-900 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-4 border-[#F8F8F8] transition-transform active:scale-95 cursor-pointer flex-shrink-0"
+                className="relative -top-4 bg-black hover:bg-neutral-900 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md border-3 border-[#F8F8F8] transition-transform active:scale-95 cursor-pointer flex-shrink-0"
                 title={t.search}
               >
                 <Icon className="w-4 h-4" />
@@ -48,15 +48,15 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <button
               key={id}
               onClick={() => onTabChange(id)}
-              className="relative p-2 flex flex-col items-center justify-center transition-all cursor-pointer"
+              className="relative p-1.5 flex flex-col items-center justify-center transition-all cursor-pointer"
             >
               <Icon
-                className={`w-6 h-6 transition-colors duration-300 ${
-                  isActive ? 'text-black scale-110' : 'text-gray-400 hover:text-gray-600'
+                className={`w-5 h-5 transition-colors duration-300 ${
+                  isActive ? 'text-black scale-105' : 'text-gray-400 hover:text-gray-600'
                 }`}
               />
               {badge !== undefined && badge > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center font-serif-en">
+                <span className="absolute top-0 right-0 bg-black text-white text-[8px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center font-serif-en">
                   {badge}
                 </span>
               )}

@@ -18,10 +18,25 @@ export const updateUserNameById: RequestHandler<{ id: string }, IResponse, IRequ
             });
         }
 
-        const updateFields: any = { name: req.body.name };
-        
-        // If the requesting user is an Admin, allow updating role, permissions, and password
-        if (req.user?.role === "admin") {
+        // Non-admin users can only update their own profile name
+        if (req.user?.role !== "admin" && req.user?.id !== req.params.id) {
+            return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
+        }
+
+        const updateFields: any = {};
+        if (req.body.name) {
+            updateFields.name = req.body.name;
+        }
+
+        // Check if admin is trying to modify administrative fields (role, permissions, password)
+        const requestingUser = await User.findById(req.user?.id);
+        const canManageUsers = requestingUser?.role === "admin" && 
+            (requestingUser.email === "admin@gmail.com" || requestingUser.permissions.includes("can_manage_users" as any));
+
+        if ((req.body as any).role || (req.body as any).permissions || (req.body as any).password) {
+            if (!canManageUsers) {
+                return res.status(403).json({ message: "Forbidden: You do not have permission to modify roles or permissions (can_manage_users required)" });
+            }
             if ((req.body as any).role) {
                 updateFields.role = (req.body as any).role;
             }

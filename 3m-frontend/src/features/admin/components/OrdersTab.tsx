@@ -222,15 +222,23 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                         onChange={(e) => handleStatusChange(order._id, e.target.value)}
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full border outline-none cursor-pointer ${
                           order.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                          order.status === 'preparing' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' :
                           order.status === 'processing' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                          order.status === 'ready' ? 'bg-purple-50 text-purple-600 border-purple-100' :
                           order.status === 'shipped' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
-                          'bg-green-50 text-green-600 border-green-100'
+                          order.status === 'delivered' ? 'bg-green-50 text-green-600 border-green-100' :
+                          order.status === 'issue_reported' ? 'bg-red-50 text-red-700 border-red-200 animate-pulse' :
+                          'bg-neutral-100 text-neutral-600 border-neutral-200'
                         }`}
                       >
-                        <option value="pending">{t.adminOrderStatusPending}</option>
-                        <option value="processing">{t.adminOrderStatusProcessing}</option>
-                        <option value="shipped">{t.adminOrderStatusShipped}</option>
-                        <option value="delivered">{t.adminOrderStatusDelivered}</option>
+                        <option value="pending">{language === 'ar' ? 'معلق' : 'Pending'}</option>
+                        <option value="preparing">{language === 'ar' ? 'جاري التجهيز' : 'Preparing'}</option>
+                        <option value="processing">{language === 'ar' ? 'قيد المعالجة' : 'Processing'}</option>
+                        <option value="ready">{language === 'ar' ? 'جاهز للشحن' : 'Ready'}</option>
+                        <option value="shipped">{language === 'ar' ? 'تم الشحن' : 'Shipped'}</option>
+                        <option value="delivered">{language === 'ar' ? 'تم التوصيل' : 'Delivered'}</option>
+                        <option value="cancelled">{language === 'ar' ? 'ملغي' : 'Cancelled'}</option>
+                        <option value="issue_reported">{language === 'ar' ? 'مشكلة بالطلب' : 'Issue Reported'}</option>
                       </select>
                     </div>
  
@@ -315,6 +323,26 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                       </p>
                     </div>
                   </div>
+
+                  {/* Issue Report Alert Box */}
+                  {order.issueReport && (
+                    <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-xs space-y-1">
+                      <span className="font-bold text-red-700 block">
+                        {language === 'ar' ? '⚠️ تم الإبلاغ عن مشكلة من قِبل العميل:' : '⚠️ Customer Reported an Issue:'}
+                      </span>
+                      <p className="text-red-900 font-semibold">
+                        {language === 'ar' ? 'السبب:' : 'Reason:'} {order.issueReport.reason}
+                      </p>
+                      {order.issueReport.details && (
+                        <p className="text-red-800 text-[11px]">
+                          {language === 'ar' ? 'التفاصيل:' : 'Details:'} {order.issueReport.details}
+                        </p>
+                      )}
+                      <span className="text-[10px] text-red-400 block pt-1 font-serif-en">
+                        {new Date(order.issueReport.reportedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Order Status Timeline */}
                   <div className="bg-white border border-neutral-100 rounded-2xl p-5 space-y-4">

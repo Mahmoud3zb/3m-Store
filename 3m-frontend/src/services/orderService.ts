@@ -19,6 +19,13 @@ export interface IOrderItem {
   price: number;
 }
 
+export interface IIssueReport {
+  reason: string;
+  details?: string;
+  reportedAt: string;
+  status: string;
+}
+
 export interface IOrder {
   _id: string;
   userID: {
@@ -30,9 +37,11 @@ export interface IOrder {
   shippingAddress: IShippingAddress;
   totalPrice: number;
   paymentMethod: 'cash' | 'card';
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending' | 'preparing' | 'processing' | 'ready' | 'shipped' | 'delivered' | 'cancelled' | 'issue_reported';
   isPaid?: boolean;
   paidAt?: string;
+  deliveredAt?: string;
+  issueReport?: IIssueReport;
   createdAt: string;
   updatedAt: string;
 }
@@ -50,9 +59,13 @@ export interface IAnalyticsData {
   };
   statusDistribution: {
     pending: number;
-    processing: number;
+    preparing?: number;
+    processing?: number;
+    ready?: number;
     shipped: number;
     delivered: number;
+    cancelled?: number;
+    issue_reported?: number;
   };
   trend: Array<{
     date: string;
@@ -102,6 +115,16 @@ export const orderService = {
 
   updateOrderStatus: async (id: string, status?: string, isPaid?: boolean): Promise<{ message: string; data: IOrder }> => {
     const response = await api.put<{ message: string; data: IOrder }>(`/order/${id}`, { status, isPaid });
+    return response.data;
+  },
+
+  confirmDelivery: async (id: string): Promise<{ message: string; data: IOrder }> => {
+    const response = await api.post<{ message: string; data: IOrder }>(`/order/${id}/confirm-delivery`);
+    return response.data;
+  },
+
+  reportOrderIssue: async (id: string, reason: string, details?: string): Promise<{ message: string; data: IOrder }> => {
+    const response = await api.post<{ message: string; data: IOrder }>(`/order/${id}/report-issue`, { reason, details });
     return response.data;
   },
 

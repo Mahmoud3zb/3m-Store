@@ -1,19 +1,65 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ClipboardList, Calendar, Clock, MapPin, CreditCard, ChevronUp, ChevronDown, Download } from 'lucide-react';
-import type { IOrder } from '../../../services/orderService';
+import { ClipboardList, Calendar, Clock, MapPin, CreditCard, ChevronUp, ChevronDown, Download, CheckCircle, AlertTriangle, MessageSquare } from 'lucide-react';
+import { orderService, type IOrder } from '../../../services/orderService';
 import { useLanguageStore } from '../../../store/languageStore';
 import { translations } from '../../../lib/translations';
+import { toast } from 'react-hot-toast';
 
 interface UserOrdersListProps {
   orders: IOrder[];
 }
 
-export function UserOrdersList({ orders }: UserOrdersListProps) {
+export function UserOrdersList({ orders: initialOrders }: UserOrdersListProps) {
   const { language } = useLanguageStore();
   const t = translations[language];
 
+  const [orders, setOrders] = useState<IOrder[]>(initialOrders);
   const [expandedOrderID, setExpandedOrderID] = useState<string | null>(null);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+
+  // Issue reporting modal state
+  const [issueModalOrder, setIssueModalOrder] = useState<IOrder | null>(null);
+  const [issueReason, setIssueReason] = useState('');
+  const [issueDetails, setIssueDetails] = useState('');
+  const [submittingIssue, setSubmittingIssue] = useState(false);
+
+  const handleConfirmDelivery = async (orderId: string) => {
+    setSubmittingId(orderId);
+    try {
+      const res = await orderService.confirmDelivery(orderId);
+      toast.success(t.deliveryConfirmedSuccess || 'Order receipt confirmed successfully!');
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'delivered', isPaid: true } : o));
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to confirm delivery');
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleReportIssueSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!issueModalOrder || !issueReason.trim()) {
+      toast.error(language === 'ar' ? 'يرجى إدخال سبب المشكلة' : 'Please provide a reason');
+      return;
+    }
+
+    setSubmittingIssue(true);
+    try {
+      const res = await orderService.reportOrderIssue(issueModalOrder._id, issueReason, issueDetails);
+      toast.success(t.issueReportedSuccess || 'Issue reported successfully!');
+      setOrders(prev => prev.map(o => o._id === issueModalOrder._id ? res.data : o));
+      setIssueModalOrder(null);
+      setIssueReason('');
+      setIssueDetails('');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to report issue');
+    } finally {
+      setSubmittingIssue(false);
+    }
+  };
 
   const handlePrintInvoice = (order: IOrder) => {
     const isAr = language === 'ar';
@@ -139,23 +185,25 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
     printWindow.document.close();
   };
 
-  const timelineStatuses = ['pending', 'processing', 'shipped', 'delivered'];
+  const timelineStatuses = ['pending', 'preparing', 'shipped', 'delivered'];
   const statusLabelsAr: Record<string, string> = {
     pending: 'معلق',
-    processing: 'تجهيز',
+    preparing: 'تجهيز',
     shipped: 'شحن',
     delivered: 'توصيل'
   };
   const statusLabelsEn: Record<string, string> = {
     pending: 'Pending',
-    processing: 'Processing',
+    preparing: 'Preparing',
     shipped: 'Shipped',
     delivered: 'Delivered'
   };
 
   const getStatusStepIndex = (status: string) => {
-    const idx = timelineStatuses.indexOf(status);
-    return idx !== -1 ? idx : 0;
+    if (status === 'delivered') return 3;
+    if (status === 'shipped') return 2;
+    if (status === 'preparing' || status === 'processing' || status === 'ready') return 1;
+    return 0;
   };
 
   const toggleOrderDetails = (orderID: string) => {
@@ -173,9 +221,13 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending': return t.orderStatusPending;
+      case 'preparing': return t.orderStatusPreparing;
       case 'processing': return t.orderStatusProcessing;
+      case 'ready': return t.orderStatusReady;
       case 'shipped': return t.orderStatusShipped;
       case 'delivered': return t.orderStatusDelivered;
+      case 'cancelled': return t.orderStatusCancelled;
+      case 'issue_reported': return t.orderStatusIssueReported;
       default: return status;
     }
   };
@@ -184,12 +236,17 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
     switch (status) {
       case 'pending':
         return 'bg-amber-50 text-amber-600 border-amber-100/50';
+      case 'preparing':
       case 'processing':
         return 'bg-blue-50 text-blue-600 border-blue-100/50';
+      case 'ready':
+        return 'bg-purple-50 text-purple-600 border-purple-100/50';
       case 'shipped':
         return 'bg-indigo-50 text-indigo-600 border-indigo-100/50';
       case 'delivered':
         return 'bg-green-50 text-green-600 border-green-100/50';
+      case 'issue_reported':
+        return 'bg-red-50 text-red-700 border-red-200';
       default:
         return 'bg-neutral-50 text-neutral-600 border-neutral-100/50';
     }
@@ -216,7 +273,7 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {orders.map((order) => (
         <div 
           key={order._id} 
@@ -228,7 +285,7 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
             className="p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 cursor-pointer hover:bg-neutral-50/50 transition-colors"
           >
             <div className="space-y-1">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <span className="text-xs font-bold text-neutral-800 font-serif-en">#{order._id}</span>
                 <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${getStatusBadgeStyle(order.status)}`}>
                   {getStatusText(order.status)}
@@ -276,6 +333,55 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
           {expandedOrderID === order._id && (
             <div className="border-t border-neutral-50 bg-neutral-50/20 p-5 md:p-6 space-y-6">
               
+              {/* Customer Actions Banner */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-900 text-white p-4 rounded-2xl">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-bold">
+                    {order.status === 'delivered' ? (language === 'ar' ? '🎉 تم استلام وسداد الطلب بنجاح' : '🎉 Order delivered & verified') :
+                     order.status === 'shipped' ? (language === 'ar' ? '📦 طلَبُك في الطريق إليك!' : '📦 Your order is on the way!') :
+                     order.status === 'issue_reported' ? (language === 'ar' ? '⚠️ بلاغ المشكلة قيد التخصيص والمراجعة' : '⚠️ Issue report is under review') :
+                     (language === 'ar' ? '⏳ جاري تجهيز ومعالجة طلبك' : '⏳ Order is being prepared')}
+                  </p>
+                  <p className="text-[10px] text-neutral-400">
+                    {language === 'ar' ? 'قم بتأكيد الوصول عند الاستلام أو التبلغ عن مشكلة' : 'Confirm receipt upon delivery or submit an issue report.'}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {order.status === 'shipped' && (
+                    <button
+                      onClick={() => handleConfirmDelivery(order._id)}
+                      disabled={submittingId === order._id}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      {t.confirmDeliveryBtn || 'تأكيد استلام الطلب'}
+                    </button>
+                  )}
+
+                  {order.status !== 'cancelled' && (
+                    <button
+                      onClick={() => setIssueModalOrder(order)}
+                      className="bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[11px] font-bold px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-neutral-700"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                      {t.reportIssueBtn || 'الإبلاغ عن مشكلة'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Reported Issue display if active */}
+              {order.issueReport && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-xs space-y-1">
+                  <span className="font-bold text-red-700 flex items-center gap-1">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    {language === 'ar' ? 'بلاغ المشكلة المُقدّم:' : 'Your Reported Issue:'}
+                  </span>
+                  <p className="text-red-900 font-semibold">{order.issueReport.reason}</p>
+                  {order.issueReport.details && <p className="text-red-800 text-[11px]">{order.issueReport.details}</p>}
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] bg-white border border-neutral-100 rounded-2xl p-4">
                 <div className="space-y-1">
@@ -428,6 +534,77 @@ export function UserOrdersList({ orders }: UserOrdersListProps) {
           )}
         </div>
       ))}
+
+      {/* Report Issue Modal */}
+      {issueModalOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full space-y-6 shadow-2xl animate-fade-in" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-4">
+              <h3 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+                {t.issueModalTitle || 'الإبلاغ عن مشكلة بالطلب'}
+              </h3>
+              <button 
+                onClick={() => setIssueModalOrder(null)}
+                className="text-neutral-400 hover:text-black font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleReportIssueSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">
+                  {t.issueReasonLabel || 'سبب المشكلة *'}
+                </label>
+                <select
+                  value={issueReason}
+                  onChange={(e) => setIssueReason(e.target.value)}
+                  required
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-black transition-all"
+                >
+                  <option value="">{language === 'ar' ? 'اختر سبب المشكلة...' : 'Select a reason...'}</option>
+                  <option value="تأخر الشحن والتوصيل">{language === 'ar' ? 'تأخر الشحن والتوصيل' : 'Delayed shipping / delivery'}</option>
+                  <option value="منتج تالف أو به عيب تصنيع">{language === 'ar' ? 'منتج تالف أو به عيب تصنيع' : 'Damaged or defective item'}</option>
+                  <option value="مقاس أو لون خاطئ">{language === 'ar' ? 'مقاس أو لون خاطئ' : 'Incorrect size or color received'}</option>
+                  <option value="عنصر مفقود من الشحنة">{language === 'ar' ? 'عنصر مفقود من الشحنة' : 'Missing item in package'}</option>
+                  <option value="سبب آخر">{language === 'ar' ? 'سبب آخر' : 'Other reason'}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-neutral-700 mb-1">
+                  {t.issueDetailsLabel || 'تفاصيل إضافية (اختياري)'}
+                </label>
+                <textarea
+                  value={issueDetails}
+                  onChange={(e) => setIssueDetails(e.target.value)}
+                  rows={3}
+                  placeholder={language === 'ar' ? 'أدخل تفاصيل أكثر لمساعدة فريق الدعم...' : 'Provide extra info for support...'}
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-black transition-all resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIssueModalOrder(null)}
+                  className="px-5 py-2.5 text-xs font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-all cursor-pointer"
+                >
+                  {t.cancelBtn}
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingIssue}
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-black hover:bg-neutral-800 rounded-xl transition-all shadow-sm cursor-pointer"
+                >
+                  {submittingIssue ? t.loadingLabel : (t.issueSubmitBtn || 'إرسال البلاغ')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
