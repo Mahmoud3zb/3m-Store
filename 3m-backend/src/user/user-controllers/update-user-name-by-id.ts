@@ -37,6 +37,19 @@ export const updateUserNameById: RequestHandler<{ id: string }, IResponse, IRequ
             if (!canManageUsers) {
                 return res.status(403).json({ message: "Forbidden: You do not have permission to modify roles or permissions (can_manage_users required)" });
             }
+
+            const targetUser = await User.findById(req.params.id);
+            const isAr = (req.headers["accept-language"] || "").toString().includes("ar");
+            const targetRole = (req.body as any).role || targetUser?.role;
+            const targetEmail = targetUser?.email;
+            const targetPermissions = (req.body as any).permissions !== undefined ? (req.body as any).permissions : targetUser?.permissions;
+
+            if (targetRole === "admin" && targetEmail !== "admin@gmail.com" && (!targetPermissions || targetPermissions.length === 0)) {
+                return res.status(400).json({
+                    message: isAr ? "يرجى تحديد صلاحية واحدة على الأقل للأدمن" : "Admin user must have at least one permission assigned"
+                });
+            }
+
             if ((req.body as any).role) {
                 updateFields.role = (req.body as any).role;
             }

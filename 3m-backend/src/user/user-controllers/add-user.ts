@@ -19,8 +19,17 @@ interface IResponse {
     message: string,
     data?: any
 }
-export const addUser: RequestHandler<{}, IResponse, IRequest> = async (req, res) => {
+export const addUser: RequestHandler<{}, IResponse, any> = async (req, res) => {
     try {
+        const { role, permissions, email } = req.body;
+        const isAr = (req.headers["accept-language"] || "").toString().includes("ar");
+
+        if (role === "admin" && email !== "admin@gmail.com" && (!permissions || !Array.isArray(permissions) || permissions.length === 0)) {
+            return res.status(400).json({
+                message: isAr ? "يرجى تحديد صلاحية واحدة على الأقل للأدمن" : "Admin user must have at least one permission assigned"
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
         const user = await User.create({
             ...req.body,

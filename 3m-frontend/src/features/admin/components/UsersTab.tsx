@@ -57,6 +57,11 @@ export function UsersTab() {
       return;
     }
 
+    if (newRole === 'admin' && newEmail.trim() !== 'admin@gmail.com' && newPermissions.length === 0) {
+      toast.error(language === 'ar' ? '⚠️ يرجى اختيار صلاحية واحدة على الأقل للأدمن!' : '⚠️ Please select at least one permission for the admin!');
+      return;
+    }
+
     setIsCreating(true);
     try {
       if (editingUserId) {
@@ -372,6 +377,13 @@ export function UsersTab() {
                       </label>
                     ))}
                   </div>
+                  {newPermissions.length === 0 && (
+                    <p className="text-[10px] font-bold text-red-600 mt-1.5 flex items-center gap-1">
+                      {language === 'ar' 
+                        ? '⚠️ تنبيه: يرجى اختيار صلاحية واحدة على الأقل لتمكين حساب الأدمن من الوصول للوحة التحكم.' 
+                        : '⚠️ Warning: Please select at least one permission for admin dashboard access.'}
+                    </p>
+                  )}
                 </div>
               )}
 
