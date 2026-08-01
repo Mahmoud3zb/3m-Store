@@ -27,7 +27,7 @@ export function UserOrdersList({ orders: initialOrders }: UserOrdersListProps) {
   const handleConfirmDelivery = async (orderId: string) => {
     setSubmittingId(orderId);
     try {
-      const res = await orderService.confirmDelivery(orderId);
+      // const res = await orderService.confirmDelivery(orderId);
       toast.success(t.deliveryConfirmedSuccess || 'Order receipt confirmed successfully!');
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'delivered', isPaid: true } : o));
     } catch (err: any) {
