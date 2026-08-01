@@ -421,22 +421,22 @@ export function AnalyticsDashboard() {
               
               <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-3 text-center">
                 <span className="text-[9px] font-bold text-amber-600 block">{isRTL ? 'معلق' : 'Pending'}</span>
-                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.pending)}</span>
+                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.pending || 0)}</span>
               </div>
 
               <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-3 text-center">
                 <span className="text-[9px] font-bold text-blue-600 block">{isRTL ? 'قيد التجهيز' : 'Processing'}</span>
-                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.processing)}</span>
+                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.processing || 0)}</span>
               </div>
 
               <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-3 text-center">
                 <span className="text-[9px] font-bold text-indigo-600 block">{isRTL ? 'تم الشحن' : 'Shipped'}</span>
-                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.shipped)}</span>
+                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.shipped || 0)}</span>
               </div>
 
               <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-3 text-center">
                 <span className="text-[9px] font-bold text-green-600 block">{isRTL ? 'تم التوصيل' : 'Delivered'}</span>
-                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.delivered)}</span>
+                <span className="text-sm font-black text-neutral-800 font-serif-en">{formatNumber(statusDistribution.delivered || 0)}</span>
               </div>
 
             </div>
