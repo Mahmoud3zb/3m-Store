@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useLanguageStore } from '../store/languageStore';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://new-3m-store.vercel.app/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://3m-store-mu.vercel.app/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
