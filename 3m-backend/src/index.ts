@@ -58,7 +58,7 @@ mongoose.connect(`${URI}/${DB_NAME}`)
 
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL ||"https://new-3m-store-6ub2.vercel.app",
+        origin: process.env.FRONTEND_URL ||"https://3m-store-azb.vercel.app",
         credentials: true,
     })
 )
