@@ -143,10 +143,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <Link
             to="/"
-            className="text-2xl font-sans md:text-3xl font-sans font-black tracking-[0.25em] text-black hover:opacity-85 transition-opacity absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0"
+            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0 group"
             dir="ltr"
           >
-            3M STORE
+            <img 
+              src="/newLogoLapHub.png" 
+              alt="LapHub" 
+              className="h-10 w-10 md:h-12 md:w-12 object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
+            />
+            <div className="flex flex-col">
+              <span className="text-xl md:text-2xl font-sans font-black tracking-wider text-amber-500 font-bold">
+                Lap<span className="text-neutral-900 dark:text-white">Hub</span>
+              </span>
+              <span className="text-[9px] font-bold text-amber-600 tracking-widest uppercase hidden md:block -mt-1">
+                Imported Laptops
+              </span>
+            </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">

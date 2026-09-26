@@ -29,12 +29,6 @@ export interface ICategory {
   updatedAt: string;
 }
 
-export interface IProductVariant {
-  size: string;
-  colorCode: string;
-  quantity: number;
-}
-
 export interface IProductOffer {
   discountedPrice: number;
   startDate: string;
@@ -43,14 +37,24 @@ export interface IProductOffer {
 
 export interface IProduct {
   _id: string;
-  userID: string | IUser;
+  userID?: string | IUser;
   categoryID: string | ICategory;
   name: string;
   description: string;
   images: string[];
   imageCover: string;
   price: number;
-  variants: IProductVariant[];
+  brand: string;        // e.g. "HP", "Dell", "Lenovo", "Apple", "Asus", "Acer", "MSI"
+  processor: string;    // e.g. "Intel Core i7 11th Gen"
+  ram: string;          // e.g. "16GB DDR4"
+  storage: string;      // e.g. "512GB NVMe SSD"
+  gpu: string;          // e.g. "NVIDIA RTX 3050 4GB"
+  screen: string;       // e.g. '15.6" FHD IPS'
+  grade: string;        // e.g. "فرز أول (Grade A+)" or "كسر زيرو (Like New)"
+  battery?: string;     // e.g. "ممتازة 85%+"
+  warranty?: string;    // e.g. "ضمان 14 يوم تجربة + 3 شهور"
+  stockQuantity: number;
+  isFeatured?: boolean;
   offer?: IProductOffer;
   createdAt: string;
   updatedAt: string;
@@ -59,8 +63,7 @@ export interface IProduct {
 export interface ICartItem {
   productID: IProduct;
   quantity: number;
-  size?: string;
-  colorCode?: string;
+  specsSummary?: string;
   _id?: string;
 }
 
@@ -73,28 +76,30 @@ export interface ICart {
 }
 
 export interface IShippingAddress {
-  street: string;
-  city: string;
+  fullName: string;
   phone: string;
+  altPhone?: string;
+  city: string;
+  street: string;
+  notes?: string;
 }
 
 export interface IOrderItem {
   productID: IProduct | string;
-  size: string;
-  colorCode: string;
   quantity: number;
   price: number;
+  specsSummary?: string;
   _id?: string;
 }
 
 export interface IOrder {
   _id: string;
-  userID: string | IUser;
+  userID?: string | IUser;
   items: IOrderItem[];
   totalPrice: number;
   shippingAddress: IShippingAddress;
   paymentMethod: 'cash' | 'card';
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending' | 'preparing' | 'processing' | 'ready' | 'shipped' | 'delivered' | 'cancelled' | 'issue_reported';
   createdAt: string;
   updatedAt: string;
 }
@@ -108,3 +113,4 @@ export interface IReview {
   createdAt: string;
   updatedAt: string;
 }
+

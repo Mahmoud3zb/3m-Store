@@ -121,27 +121,17 @@ export const useCartStore = create<CartState>()(
         }
       },
 
-      addItem: async (product, quantity = 1, size, colorCode) => {
+      addItem: async (product, quantity = 1) => {
         const { isAuthenticated } = useAuthStore.getState();
         
-        let finalSize = size;
-        let finalColorCode = colorCode;
-        if ((!finalSize || !finalColorCode) && product.variants && product.variants.length > 0) {
-          const availableVariant = product.variants.find((v: any) => v.quantity > 0) || product.variants[0];
-          if (availableVariant) {
-            finalSize = finalSize || availableVariant.size;
-            finalColorCode = finalColorCode || availableVariant.colorCode;
-          }
-        }
-
         if (isAuthenticated) {
           set({ isLoading: true });
           try {
-            await cartService.addToCart(product._id, quantity, finalSize, finalColorCode);
+            await cartService.addToCart(product._id, quantity);
             const res = await cartService.getCart();
             get().setCartData(res.data?.items || [], res.totalCartPrice || 0);
             set({ isCartOpen: true });
-            toast.success('تمت إضافة المنتج إلى السلة');
+            toast.success('تمت إضافة اللابتوب إلى السلة');
           } catch (error) {
             console.error('Error adding item to server cart:', error);
             toast.error('عذراً، فشل إضافة المنتج إلى السلة');
@@ -151,22 +141,23 @@ export const useCartStore = create<CartState>()(
         } else {
           const currentItems = [...get().items];
           const existingItemIndex = currentItems.findIndex(
-            (item) => 
-              item.productID._id === product._id && 
-              item.size === finalSize && 
-              item.colorCode === finalColorCode
+            (item) => item.productID._id === product._id
           );
 
           if (existingItemIndex > -1) {
             currentItems[existingItemIndex].quantity += quantity;
           } else {
-            currentItems.push({ productID: product, quantity, size: finalSize, colorCode: finalColorCode });
+            currentItems.push({ 
+              productID: product, 
+              quantity, 
+              specsSummary: `${product.brand || ''} ${product.name} | ${product.processor || ''} | ${product.ram || ''}` 
+            });
           }
 
           const total = currentItems.reduce((acc, item) => acc + (getProductPrice(item.productID) * item.quantity), 0);
           get().setCartData(currentItems, total);
           set({ isCartOpen: true });
-          toast.success('تمت إضافة المنتج إلى السلة');
+          toast.success('تمت إضافة اللابتوب إلى السلة');
         }
       },
 

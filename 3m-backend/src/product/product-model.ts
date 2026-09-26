@@ -1,12 +1,5 @@
 import mongoose from "mongoose";
 
-// Interface representing individual product variant stock
-export interface IProductVariant {
-    size: string;       // e.g., "S", "M", "L", "XL"
-    colorCode: string;  // e.g., "#FF0000" or hex code
-    quantity: number;   // Stock specifically for this variant
-}
-
 // Interface for promotional offers
 export interface IProductOffer {
     discountedPrice: number;
@@ -22,8 +15,18 @@ export interface IProduct extends mongoose.Document {
     images: string[];
     imageCover: string;
     price: number;
-    variants: IProductVariant[]; // Added: Size & Color variations
-    offer?: IProductOffer;       // Added: Offer management details
+    brand: string;        // e.g., "HP", "Dell", "Lenovo", "Apple", "Asus", "Acer", "MSI"
+    processor: string;    // e.g., "Intel Core i7 11th Gen"
+    ram: string;          // e.g., "16GB DDR4"
+    storage: string;      // e.g., "512GB NVMe SSD"
+    gpu: string;          // e.g., "NVIDIA RTX 3050 4GB"
+    screen: string;       // e.g., '15.6" FHD IPS'
+    grade: string;        // e.g., "فرز أول (Grade A+)", "كسر زيرو (Like New)"
+    battery?: string;     // e.g., "ممتازة 85%+"
+    warranty?: string;    // e.g., "ضمان 14 يوم تجربة + 3 شهور"
+    stockQuantity: number;
+    isFeatured?: boolean;
+    offer?: IProductOffer;
 }
 
 const productSchema = new mongoose.Schema<IProduct>({
@@ -59,21 +62,65 @@ const productSchema = new mongoose.Schema<IProduct>({
         required: true,
         min: [1, "Price must be at least 1"]
     },
-    variants: {
-        type: [
-            {
-                size: { type: String, required: true },
-                colorCode: { type: String, required: true },
-                quantity: { type: Number, required: true, min: [0, "Variant stock cannot be negative"], default: 0 }
-            }
-        ],
+    brand: {
+        type: String,
         required: true,
-        validate: {
-            validator: function (v: IProductVariant[]) {
-                return v && v.length > 0;
-            },
-            message: "A product must have at least one variant."
-        }
+        trim: true,
+        default: "HP"
+    },
+    processor: {
+        type: String,
+        required: true,
+        trim: true,
+        default: "Intel Core i7"
+    },
+    ram: {
+        type: String,
+        required: true,
+        trim: true,
+        default: "16GB"
+    },
+    storage: {
+        type: String,
+        required: true,
+        trim: true,
+        default: "512GB SSD"
+    },
+    gpu: {
+        type: String,
+        required: true,
+        trim: true,
+        default: "Intel Iris Xe"
+    },
+    screen: {
+        type: String,
+        required: true,
+        trim: true,
+        default: '15.6" FHD'
+    },
+    grade: {
+        type: String,
+        required: true,
+        trim: true,
+        default: "فرز أول (Grade A+)"
+    },
+    battery: {
+        type: String,
+        default: "حالة ممتازة 85%+"
+    },
+    warranty: {
+        type: String,
+        default: "ضمان 14 يوم فحص واستبدال + 3 شهور"
+    },
+    stockQuantity: {
+        type: Number,
+        required: true,
+        min: [0, "Stock cannot be negative"],
+        default: 1
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false
     },
     offer: {
         discountedPrice: { 
@@ -100,3 +147,4 @@ const productSchema = new mongoose.Schema<IProduct>({
 }, { timestamps: true });
 
 export const Product = mongoose.model<IProduct>("Product", productSchema);
+

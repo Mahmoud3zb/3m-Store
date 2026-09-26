@@ -5,15 +5,35 @@ import mongoose from "mongoose";
 export const getAllProducts: RequestHandler = async (req, res, next) => {
     try {
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 10;
+        const limit = Number(req.query.limit) || 20;
 
         const filterObj: any = {};
 
         if (req.query.keyword) {
-            filterObj.name = {
-                $regex: req.query.keyword as string,
-                $options: "i", // case-insensitive (note it mohamed)
-            };
+            const keywordRegex = { $regex: req.query.keyword as string, $options: "i" };
+            filterObj.$or = [
+                { name: keywordRegex },
+                { brand: keywordRegex },
+                { processor: keywordRegex },
+                { description: keywordRegex },
+                { gpu: keywordRegex }
+            ];
+        }
+
+        if (req.query.brand) {
+            filterObj.brand = { $regex: req.query.brand as string, $options: "i" };
+        }
+
+        if (req.query.processor) {
+            filterObj.processor = { $regex: req.query.processor as string, $options: "i" };
+        }
+
+        if (req.query.grade) {
+            filterObj.grade = { $regex: req.query.grade as string, $options: "i" };
+        }
+
+        if (req.query.isFeatured !== undefined) {
+            filterObj.isFeatured = req.query.isFeatured === "true";
         }
 
         if (req.query.categoryID) {

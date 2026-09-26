@@ -2,7 +2,7 @@ import React from 'react';
 import { MapPin, Phone, CreditCard, Loader2 } from 'lucide-react';
 import { useLanguageStore } from '../../../store/languageStore';
 import { translations } from '../../../lib/translations';
-import { useAuthStore } from '../../../store/authStore';
+// import { useAuthStore } from '../../../store/authStore';
 
 const CITIES = [
   { ar: 'القاهرة', en: 'Cairo' },
@@ -30,6 +30,7 @@ const CITIES = [
 
 interface ShippingFormProps {
   formData: {
+    fullName: string;
     street: string;
     city: string;
     phone: string;
@@ -49,7 +50,7 @@ export function ShippingForm({
   setPaymentMethod,
   isSubmitting,
 }: ShippingFormProps) {
-  const { user } = useAuthStore();
+  // const { user } = useAuthStore();
   const { language } = useLanguageStore();
   const t = translations[language];
 
@@ -71,12 +72,15 @@ export function ShippingForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
          
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-neutral-500 block">{t.fullnameLabel}</label>
+            <label className="text-xs font-bold text-neutral-700 block">{t.fullnameLabel} *</label>
             <input 
               type="text" 
-              value={user?.name || ''} 
-              disabled
-              className="w-full bg-neutral-50 border border-neutral-200 text-neutral-550 px-4 py-3 rounded-xl text-xs font-bold outline-none cursor-not-allowed text-left"
+              name="fullName"
+              value={formData.fullName} 
+              onChange={handleInputChange}
+              placeholder={t.fullNamePlaceholder || 'أدخل اسمك بالكامل...'}
+              className={`w-full bg-white border border-neutral-200 hover:border-neutral-300 focus:border-black transition-all px-4 py-3 rounded-xl text-xs font-bold outline-none ${language === 'ar' ? 'text-right' : 'text-left'}`}
+              required
             />
           </div>
 

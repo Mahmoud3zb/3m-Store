@@ -98,17 +98,17 @@ export function ProductsView() {
   //   addItem(product);
   // };
 
-  const handleQuickAddSize = (product: any, size: string) => {
-    const matchingVariant = product.variants?.find((v: any) => v.size === size && v.quantity > 0) 
-      || product.variants?.find((v: any) => v.size === size);
-    const color = matchingVariant ? matchingVariant.colorCode : (product.variants?.[0]?.colorCode || '');
-    addItem(product, 1, size, color);
-    toast.success(
-      language === 'ar'
-        ? `تم إضافة مقاس ${size} إلى السلة!`
-        : `Size ${size} added to cart!`
-    );
-  };
+  // const handleQuickAddSize = (product: any, size: string) => {
+  //   const matchingVariant = product.variants?.find((v: any) => v.size === size && v.quantity > 0) 
+  //     || product.variants?.find((v: any) => v.size === size);
+  //   const color = matchingVariant ? matchingVariant.colorCode : (product.variants?.[0]?.colorCode || '');
+  //   addItem(product, 1, size, color);
+  //   toast.success(
+  //     language === 'ar'
+  //       ? `تم إضافة مقاس ${size} إلى السلة!`
+  //       : `Size ${size} added to cart!`
+  //   );
+  // };
 
   return (
     <div className={`pt-32 pb-20 px-6 md:px-12 max-w-7xl mx-auto min-h-[80vh] ${language === 'ar' ? 'text-right' : 'text-left'}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -366,56 +366,46 @@ export function ProductsView() {
                           />
                         </button>
 
-                        {/* Quick Size Add Overlay (Desktop only) */}
-                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 hidden lg:flex flex-col justify-end">
-                          <span className="text-[9px] text-white/90 font-bold mb-1.5 text-center">
-                            {language === 'ar' ? 'إضافة سريعة للمقاس:' : 'Quick Add Size:'}
+                        {/* Quick Spec Overlay */}
+                        <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 hidden lg:flex flex-col justify-end text-white">
+                          <span className="text-[10px] text-amber-400 font-bold mb-1">
+                            {product.brand || 'HP'} • {product.processor || 'Core i7'}
                           </span>
-                          <div className="flex gap-1.5 justify-center flex-wrap" dir="ltr">
-                            {Array.from(new Set((product.variants as any[])?.map((v) => v.size) || []))
-                              .map((size) => {
-                                const variantForSize = product.variants?.find((v: any) => v.size === size);
-                                const isOutOfStock = !variantForSize || variantForSize.quantity === 0;
-                                return (
-                                  <button
-                                    key={size}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      if (!isOutOfStock) {
-                                        handleQuickAddSize(product, size);
-                                      }
-                                    }}
-                                    disabled={isOutOfStock}
-                                    className={`h-7 px-2.5 rounded-lg text-[10px] font-black tracking-wider transition-all flex items-center justify-center border ${
-                                      isOutOfStock
-                                        ? 'bg-neutral-900/45 text-neutral-500 border-neutral-800 cursor-not-allowed line-through'
-                                        : 'bg-white text-black border-white hover:bg-neutral-100 cursor-pointer shadow-sm hover:scale-105 active:scale-95'
-                                    }`}
-                                  >
-                                    {size}
-                                  </button>
-                                );
-                              })}
-                          </div>
+                          <span className="text-[10px] text-neutral-300">
+                            {product.ram || '16GB'} | {product.storage || '512GB SSD'}
+                          </span>
                         </div>
                       </div>
 
-                  
-                      <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mb-1 block">
-                        {categoryName}
-                      </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider block">
+                          {product.brand || categoryName}
+                        </span>
+                        <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded">
+                          {product.grade || 'فرز أول'}
+                        </span>
+                      </div>
+
                       <Link to={`/product/${product._id}`} className="block hover:underline mb-1">
-                        <h3 className="text-[13px] font-bold text-neutral-900 group-hover:text-black transition-colors line-clamp-1">
+                        <h3 className="text-sm font-bold text-neutral-900 group-hover:text-amber-600 transition-colors line-clamp-1">
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-[11px] text-neutral-400 line-clamp-2 leading-relaxed mb-3">
-                        {product.description}
-                      </p>
+
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-neutral-500 font-medium mb-3">
+                        <span className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">
+                          {product.processor || 'Core i7'}
+                        </span>
+                        <span className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">
+                          {product.ram || '16GB'}
+                        </span>
+                        <span className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-2 py-0.5 rounded">
+                          {product.storage || 'SSD'}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="mt-auto pt-2 border-t border-neutral-50">
+                    <div className="mt-auto pt-3 border-t border-neutral-100 dark:border-neutral-800">
                       <div className="flex justify-between items-center mb-3">
                         <span className="text-[10px] text-neutral-400">{t.priceLabel}</span>
                         <div className="flex items-center gap-1.5">
@@ -430,7 +420,7 @@ export function ProductsView() {
                                     <span className="text-[10px] line-through text-red-500 font-serif-en opacity-70" dir="ltr">
                                       {product.price} {t.currency}
                                     </span>
-                                    <span className="text-xs font-bold text-neutral-900 font-serif-en" dir="ltr">
+                                    <span className="text-sm font-black text-amber-600 font-serif-en" dir="ltr">
                                       {product.offer.discountedPrice} {t.currency}
                                     </span>
                                   </>
@@ -439,54 +429,25 @@ export function ProductsView() {
                               return null;
                             })()
                           ) || (
-                            <span className="text-xs font-bold text-neutral-900 font-serif-en" dir="ltr">
+                            <span className="text-sm font-black text-amber-600 font-serif-en" dir="ltr">
                               {product.price} {t.currency}
                             </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Available Sizes Row (Mobile only) */}
-                      <div className="lg:hidden block mb-4 mt-2">
-                        <span className="text-[9px] text-neutral-450 font-bold block mb-1">
-                          {language === 'ar' ? 'المقاسات المتاحة:' : 'Available Sizes:'}
-                        </span>
-                        <div className="flex gap-1.5 flex-wrap" dir="ltr">
-                          {Array.from(new Set((product.variants as any[])?.map((v) => v.size) || []))
-                            .map((size) => {
-                              const variantForSize = product.variants?.find((v: any) => v.size === size);
-                              const isOutOfStock = !variantForSize || variantForSize.quantity === 0;
-                              return (
-                                <button
-                                  key={size}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if (!isOutOfStock) {
-                                      handleQuickAddSize(product, size);
-                                    }
-                                  }}
-                                  disabled={isOutOfStock}
-                                  className={`h-7 min-w-[32px] px-2.5 rounded-lg text-[9px] font-black tracking-wider transition-all flex items-center justify-center border ${
-                                    isOutOfStock
-                                      ? 'bg-neutral-50 text-neutral-350 border-neutral-100 cursor-not-allowed line-through'
-                                      : 'bg-white text-neutral-800 border-neutral-200 hover:border-black cursor-pointer shadow-sm hover:scale-105 active:scale-95'
-                                  }`}
-                                >
-                                  {size}
-                                </button>
-                              );
-                            })}
-                        </div>
-                      </div>
-
-                      <Link
-                        to={`/product/${product._id}`}
-                        className="w-full bg-neutral-900 hover:bg-black text-white text-[10px] font-bold tracking-wider py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm text-center"
+                      <button
+                        onClick={() => {
+                          addItem(product, 1);
+                          toast.success(
+                            language === 'ar' ? 'تم إضافة اللابتوب للسلة بنجاح!' : 'Laptop added to cart!'
+                          );
+                        }}
+                        className="w-full bg-neutral-900 hover:bg-amber-500 hover:text-neutral-950 text-white font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                       >
-                        <ShoppingBag className="w-3 h-3" />
-                        {language === 'ar' ? 'اختر المقاس واللون' : 'Select Size & Color'}
-                      </Link>
+                        <ShoppingBag className="w-3.5 h-3.5 text-amber-400 group-hover:text-neutral-950" />
+                        <span>{t.addToCart}</span>
+                      </button>
                     </div>
                   </div>
                 );

@@ -40,8 +40,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodPrice, setProdPrice] = useState('');
-  const [prodVariants, setProdVariants] = useState<IProductVariant[]>([]);
   const [prodCatId, setProdCatId] = useState('');
+
+  // Laptop Specs States
+  const [prodBrand, setProdBrand] = useState('HP');
+  const [prodProcessor, setProdProcessor] = useState('Intel Core i7');
+  const [prodRam, setProdRam] = useState('16GB');
+  const [prodStorage, setProdStorage] = useState('512GB SSD');
+  const [prodGpu, setProdGpu] = useState('Intel Iris Xe');
+  const [prodScreen, setProdScreen] = useState('15.6" FHD');
+  const [prodGrade, setProdGrade] = useState('فرز أول (Grade A+)');
+  const [prodStock, setProdStock] = useState(5);
+
   const [prodCoverFile, setProdCoverFile] = useState<File | null>(null);
   const [prodCoverPreview, setProdCoverPreview] = useState<string | null>(null);
   const [prodGalleryFiles, setProdGalleryFiles] = useState<FileList | null>(null);
@@ -70,14 +80,21 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         setProdName(editingProduct.name || '');
         setProdDesc(editingProduct.description || '');
         setProdPrice(editingProduct.price !== undefined && editingProduct.price !== null ? editingProduct.price.toString() : '');
-        setProdVariants(editingProduct.variants || []);
+        setProdBrand(editingProduct.brand || 'HP');
+        setProdProcessor(editingProduct.processor || 'Intel Core i7');
+        setProdRam(editingProduct.ram || '16GB');
+        setProdStorage(editingProduct.storage || '512GB SSD');
+        setProdGpu(editingProduct.gpu || 'Intel Iris Xe');
+        setProdScreen(editingProduct.screen || '15.6" FHD');
+        setProdGrade(editingProduct.grade || 'فرز أول (Grade A+)');
+        setProdStock(editingProduct.stockQuantity ?? 5);
+
         const catId = typeof editingProduct.categoryID === 'object' ? editingProduct.categoryID?._id : editingProduct.categoryID;
         setProdCatId(catId || (categories[0]?._id || ''));
         setProdCoverFile(null);
         setProdCoverPreview(editingProduct.imageCover || null);
         setProdGalleryFiles(null);
 
-        
         if (editingProduct.offer && editingProduct.offer.discountedPrice !== undefined && editingProduct.offer.discountedPrice !== null) {
           setHasOffer(true);
           setDiscountedPrice(editingProduct.offer.discountedPrice.toString());
@@ -99,7 +116,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         setProdName('');
         setProdDesc('');
         setProdPrice('');
-        setProdVariants([{ size: 'S', colorCode: '#000000', quantity: 10 }]);
+        setProdBrand('HP');
+        setProdProcessor('Intel Core i7');
+        setProdRam('16GB');
+        setProdStorage('512GB SSD');
+        setProdGpu('Intel Iris Xe');
+        setProdScreen('15.6" FHD');
+        setProdGrade('فرز أول (Grade A+)');
+        setProdStock(5);
         setProdCatId(categories[0]?._id || '');
         setProdCoverFile(null);
         setProdCoverPreview(null);
@@ -110,7 +134,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         setOfferEndDate('');
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingProduct, isOpen]);
 
   if (!isOpen) return null;
@@ -126,12 +149,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       name: prodName,
       description: prodDesc,
       price: prodPrice,
-      variants: prodVariants,
+      brand: prodBrand,
+      processor: prodProcessor,
+      ram: prodRam,
+      storage: prodStorage,
+      gpu: prodGpu,
+      screen: prodScreen,
+      grade: prodGrade,
+      stockQuantity: prodStock,
       categoryID: prodCatId,
       offer,
       coverFile: prodCoverFile,
       galleryFiles: prodGalleryFiles,
-    });
+    } as any);
   };
 
   const addVariant = () => {
@@ -229,80 +259,94 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             />
           </div>
 
-          {/* Variants Management */}
-          <div className="space-y-3 border-t border-neutral-100 pt-4">
-            <div className="flex justify-between items-start flex-col sm:flex-row gap-1">
-              <div>
-                <label className="text-[10px] font-bold text-neutral-500 block">
-                  {language === 'ar' ? 'متغيرات المنتج (المقاس واللون والكمية)' : 'Product Variants (Size, Color, Qty)'}
-                </label>
-                <p className="text-[9px] text-neutral-400 mt-0.5 leading-normal">
-                  {language === 'ar' 
-                    ? 'ملاحظة: يتم حساب إجمالي مخزون المنتج تلقائياً بناءً على مجموع كميات المتغيرات المضافة.' 
-                    : 'Note: The total product inventory is automatically calculated based on the sum of added variants.'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addVariant}
-                className="bg-black text-white hover:bg-neutral-800 text-[9px] font-bold px-2.5 py-1 rounded-lg transition-all cursor-pointer"
-              >
-                {language === 'ar' ? '+ إضافة متغير' : '+ Add Variant'}
-              </button>
+          {/* Laptop Specs Fields */}
+          <div className="grid grid-cols-2 gap-3 border-t border-neutral-100 pt-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">الماركة (Brand)</label>
+              <input 
+                type="text" 
+                value={prodBrand}
+                onChange={(e) => setProdBrand(e.target.value)}
+                placeholder="HP / Dell / Lenovo..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
             </div>
-            
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-              {prodVariants.map((variant, index) => (
-                <div key={index} className="flex gap-2 items-center bg-neutral-50 p-2.5 rounded-xl border border-neutral-150">
-                  <div className="w-1/4">
-                    <input
-                      type="text"
-                      placeholder="Size (e.g. S, M)"
-                      value={variant.size}
-                      onChange={(e) => updateVariant(index, 'size', e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-lg px-2 py-1 text-[11px] font-bold outline-none text-center"
-                      required
-                    />
-                  </div>
-                  <div className="w-1/3 flex items-center gap-1.5">
-                    <input
-                      type="color"
-                      value={variant.colorCode}
-                      onChange={(e) => updateVariant(index, 'colorCode', e.target.value)}
-                      className="w-8 h-6 bg-white border border-neutral-200 rounded cursor-pointer p-0"
-                      required
-                    />
-                    <input
-                      type="text"
-                      placeholder="#000000"
-                      value={variant.colorCode}
-                      onChange={(e) => updateVariant(index, 'colorCode', e.target.value)}
-                      className="w-full bg-white border border-neutral-200 rounded-lg px-1.5 py-1 text-[10px] font-mono outline-none text-center"
-                      required
-                    />
-                  </div>
-                  <div className="w-1/4">
-                    <input
-                      type="number"
-                      placeholder="Qty"
-                      min={0}
-                      value={variant.quantity}
-                      onChange={(e) => updateVariant(index, 'quantity', parseInt(e.target.value) || 0)}
-                      className="w-full bg-white border border-neutral-200 rounded-lg px-2 py-1 text-[11px] font-bold outline-none text-center"
-                      required
-                    />
-                  </div>
-                  {prodVariants.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeVariant(index)}
-                      className="text-red-500 hover:text-red-700 text-xs font-bold p-1"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">المعالج (Processor)</label>
+              <input 
+                type="text" 
+                value={prodProcessor}
+                onChange={(e) => setProdProcessor(e.target.value)}
+                placeholder="Intel Core i7 11th Gen..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">الرامات (RAM)</label>
+              <input 
+                type="text" 
+                value={prodRam}
+                onChange={(e) => setProdRam(e.target.value)}
+                placeholder="16GB DDR4..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">التخزين (Storage)</label>
+              <input 
+                type="text" 
+                value={prodStorage}
+                onChange={(e) => setProdStorage(e.target.value)}
+                placeholder="512GB NVMe SSD..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">كارت الشاشة (GPU)</label>
+              <input 
+                type="text" 
+                value={prodGpu}
+                onChange={(e) => setProdGpu(e.target.value)}
+                placeholder="NVIDIA RTX 3050 4GB..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">الشاشة (Screen)</label>
+              <input 
+                type="text" 
+                value={prodScreen}
+                onChange={(e) => setProdScreen(e.target.value)}
+                placeholder='15.6" FHD IPS...'
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">حالة الفرز (Grade)</label>
+              <input 
+                type="text" 
+                value={prodGrade}
+                onChange={(e) => setProdGrade(e.target.value)}
+                placeholder="فرز أول (Grade A+)..."
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-neutral-500 block">الكمية المتاحة (Stock Qty)</label>
+              <input 
+                type="number" 
+                value={prodStock}
+                onChange={(e) => setProdStock(Number(e.target.value))}
+                min={0}
+                className="w-full border border-neutral-200 rounded-xl px-3 py-1.5 text-xs focus:border-black outline-none bg-neutral-50/30"
+              />
             </div>
           </div>
 

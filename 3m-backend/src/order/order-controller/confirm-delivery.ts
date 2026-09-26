@@ -22,7 +22,7 @@ export const confirmDelivery: RequestHandler<{ id: string }, IResponse> = async 
         }
 
         // Verify that the order belongs to the logged-in customer or user is admin
-        if (order.userID.toString() !== req.user?.id && req.user?.role !== "admin") {
+        if (order.userID && order.userID.toString() !== req.user?.id && req.user?.role !== "admin") {
             return res.status(403).json({ message: "Forbidden: You can only confirm delivery for your own orders" });
         }
 

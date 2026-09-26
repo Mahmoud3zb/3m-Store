@@ -1,14 +1,23 @@
 import { RequestHandler } from "express";
 import { Product } from "../product-model";
 import mongoose from "mongoose";
-import type { IProductVariant } from "../product-model";
 
 interface IRequest {
     name?: string;
     description?: string;
     imageCover?: string;
     price?: number;
-    variants?: IProductVariant[];
+    brand?: string;
+    processor?: string;
+    ram?: string;
+    storage?: string;
+    gpu?: string;
+    screen?: string;
+    grade?: string;
+    battery?: string;
+    warranty?: string;
+    stockQuantity?: number;
+    isFeatured?: boolean;
     categoryID?: string;
 }
 
@@ -25,21 +34,13 @@ export const updateProduct: RequestHandler<{ id: string }, IResponse, IRequest> 
 
         const updateData: Record<string, any> = { ...req.body };
 
-        // Handle imageCover from uploaded file
         if (req.file?.path) {
             updateData.imageCover = req.file.path;
         }
 
-        // Parse variants if they arrive as a JSON string from multipart/form-data
-        if (updateData.variants && typeof updateData.variants === "string") {
-            try {
-                updateData.variants = JSON.parse(updateData.variants);
-            } catch {
-                return res.status(400).json({ message: "Invalid variants format. Must be a valid JSON array." });
-            }
-        }
+        if (updateData.price) updateData.price = Number(updateData.price);
+        if (updateData.stockQuantity) updateData.stockQuantity = Number(updateData.stockQuantity);
 
-        // Parse offer if it arrives as a JSON string from multipart/form-data
         if (updateData.offer === "") {
             updateData.offer = null;
         } else if (updateData.offer && typeof updateData.offer === "string") {
@@ -71,4 +72,4 @@ export const updateProduct: RequestHandler<{ id: string }, IResponse, IRequest> 
         console.error(error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};

@@ -30,6 +30,7 @@ export function CheckoutView() {
   }, [settings, fetchSettings]);
 
   const [formData, setFormData] = useState({
+    fullName: user?.name || '',
     street: '',
     city: '',
     phone: '',
@@ -57,15 +58,6 @@ export function CheckoutView() {
 
   const shippingFee = getShippingFee();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      const timer = setTimeout(() => {
-        openAuthModal();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, openAuthModal]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -74,11 +66,11 @@ export function CheckoutView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      openAuthModal();
+
+    if (!formData.fullName.trim()) {
+      setError(language === 'ar' ? 'الاسم بالكامل مطلوب' : 'Full name is required');
       return;
     }
-
     if (!formData.phone.trim()) {
       setError(t.phoneRequiredError);
       return;
@@ -96,14 +88,21 @@ export function CheckoutView() {
     setError('');
 
     try {
+      const guestCartItems = items.map(item => ({
+        productID: item.productID._id,
+        quantity: item.quantity
+      }));
+
       const res = await orderService.createOrder(
         {
+          fullName: formData.fullName.trim(),
           street: formData.street.trim(),
           city: formData.city,
           phone: formData.phone.trim(),
         },
         paymentMethod,
-        appliedPromo || undefined
+        appliedPromo || undefined,
+        guestCartItems
       );
 
       await clearCart();
@@ -140,28 +139,6 @@ export function CheckoutView() {
           {t.browseProductsBtn}
           <ArrowLeft className={`w-3.5 h-3.5 ${language === 'en' ? 'rotate-180' : ''}`} />
         </Link>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className={`pt-32 pb-20 px-6 max-w-xl mx-auto min-h-[70vh] text-center space-y-6`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        <div className="w-16 h-16 bg-neutral-50 rounded-full flex items-center justify-center mx-auto border border-neutral-100">
-          <ShieldCheck className="w-6 h-6 text-neutral-400" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-lg font-bold text-neutral-800">{t.loginRequiredCheckout}</h2>
-          <p className="text-xs text-neutral-400 leading-relaxed">
-            {t.loginRequiredCheckoutDesc}
-          </p>
-        </div>
-        <button
-          onClick={openAuthModal}
-          className="bg-black text-white px-8 py-3.5 text-xs uppercase tracking-widest font-bold hover:bg-neutral-800 rounded-xl transition-all shadow-sm cursor-pointer"
-        >
-          {t.loginNow}
-        </button>
       </div>
     );
   }

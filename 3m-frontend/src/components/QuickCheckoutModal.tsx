@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Tag, ShoppingBag, Truck } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
+// import { useAuthStore } from '../store/authStore';
 import { useLanguageStore } from '../store/languageStore';
 import { translations } from '../lib/translations';
 import { orderService } from '../services/orderService';
@@ -14,15 +14,15 @@ interface QuickCheckoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   product: IProduct;
-  selectedSize: string;
-  selectedColor: string;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
-export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, selectedColor }: QuickCheckoutModalProps) {
+export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize = '', selectedColor = '' }: QuickCheckoutModalProps) {
   const navigate = useNavigate();
   const { language } = useLanguageStore();
   const t = translations[language];
-  const { isAuthenticated, openAuthModal } = useAuthStore();
+  // const { isAuthenticated, openAuthModal } = useAuthStore();
   const { settings, fetchSettings } = useSettingsStore();
 
   useEffect(() => {
@@ -32,9 +32,12 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
   }, [settings, fetchSettings]);
 
   const [formData, setFormData] = useState({
-    street: '',
-    city: '',
+    fullName: '',
     phone: '',
+    altPhone: '',
+    city: '',
+    street: '',
+    notes: '',
   });
 
   const [promoInput, setPromoInput] = useState('');
@@ -73,7 +76,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
     }
   }, [isOpen]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setError('');
@@ -137,11 +140,11 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      openAuthModal();
+
+    if (!formData.fullName.trim()) {
+      setError(language === 'ar' ? 'الاسم بالكامل مطلوب' : 'Full name is required');
       return;
     }
-
     if (!formData.phone.trim()) {
       setError(language === 'ar' ? 'رقم الهاتف مطلوب' : 'Phone number is required');
       return;
@@ -160,16 +163,17 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
 
     try {
       const shippingAddress = {
-        street: formData.street.trim(),
-        city: formData.city,
+        fullName: formData.fullName.trim(),
         phone: formData.phone.trim(),
+        altPhone: formData.altPhone.trim(),
+        city: formData.city,
+        street: formData.street.trim(),
+        notes: formData.notes.trim(),
       };
 
       const res = await orderService.createDirectOrder(
         product._id,
-        1, 
-        selectedSize,
-        selectedColor,
+        1,
         shippingAddress,
         appliedPromo || undefined
       );
@@ -274,13 +278,22 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
               <h4 className="text-xs font-bold text-neutral-900 truncate">
                 {product.name}
               </h4>
-              <p className="text-[10px] text-neutral-500 mt-1 flex items-center gap-2 flex-wrap">
-                <span>{isRTL ? `المقاس: ${selectedSize}` : `Size: ${selectedSize}`}</span>
-                <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full" />
-                <span className="flex items-center gap-1">
-                  {isRTL ? 'اللون:' : 'Color:'}
-                  <span className="w-3 h-3 rounded-full border border-neutral-300 inline-block" style={{ backgroundColor: selectedColor }} />
-                </span>
+              <p className="text-[10px] text-neutral-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                {product.processor && <span className="font-semibold text-neutral-700 dark:text-neutral-300">{product.processor}</span>}
+                {product.ram && <span>• {product.ram}</span>}
+                {product.storage && <span>• {product.storage}</span>}
+                {product.grade && (
+                  <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold px-1.5 py-0.5 rounded text-[9px] border border-amber-500/20">
+                    {product.grade}
+                  </span>
+                )}
+                {!product.processor && selectedSize && <span>{isRTL ? `المقاس: ${selectedSize}` : `Size: ${selectedSize}`}</span>}
+                {!product.processor && selectedColor && (
+                  <span className="flex items-center gap-1">
+                    {isRTL ? 'اللون:' : 'Color:'}
+                    <span className="w-3 h-3 rounded-full border border-neutral-300 inline-block" style={{ backgroundColor: selectedColor }} />
+                  </span>
+                )}
                 <span className="w-1.5 h-1.5 bg-neutral-300 rounded-full" />
                 <span>{isRTL ? 'الكمية: ١' : 'Qty: 1'}</span>
               </p>
@@ -324,36 +337,53 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
               </h2>
             </div>
 
-            {!isAuthenticated ? (
-              <div className="py-12 text-center space-y-4">
-                <p className="text-xs text-neutral-500">
-                  {isRTL 
-                    ? 'يرجى تسجيل الدخول أولاً لتتمكن من إتمام الشراء السريع بضغطة واحدة.'
-                    : 'Please log in to complete your quick one-click purchase.'}
-                </p>
-                <button
-                  onClick={() => openAuthModal()}
-                  className="bg-black hover:bg-neutral-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all cursor-pointer"
-                >
-                  {isRTL ? 'تسجيل الدخول' : 'Log In'}
-                </button>
-              </div>
-            ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                
+                {/* Full Name */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-neutral-800 uppercase tracking-wider block">
-                    {isRTL ? 'رقم الهاتف' : 'Phone Number'}
+                    {isRTL ? 'الاسم بالكامل *' : 'Full Name *'}
                   </label>
                   <input
-                    type="tel"
-                    name="phone"
+                    type="text"
+                    name="fullName"
                     required
-                    value={formData.phone}
+                    value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder="01xxxxxxxxx"
+                    placeholder={isRTL ? 'أدخل اسمك الثلاثي...' : 'John Doe'}
                     className={`w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-black transition-all rounded-xl text-xs py-2.5 px-3 font-medium outline-none ${isRTL ? 'text-right' : 'text-left'}`}
                   />
+                </div>
+
+                {/* Phone Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-neutral-800 uppercase tracking-wider block">
+                      {isRTL ? 'رقم الموبايل الرئيسي *' : 'Primary Phone *'}
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="01xxxxxxxxx"
+                      className={`w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-black transition-all rounded-xl text-xs py-2.5 px-3 font-medium outline-none ${isRTL ? 'text-right' : 'text-left'}`}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-neutral-800 uppercase tracking-wider block">
+                      {isRTL ? 'رقم موبايل آخر / واتساب (اختياري)' : 'Alt Phone / WhatsApp'}
+                    </label>
+                    <input
+                      type="tel"
+                      name="altPhone"
+                      value={formData.altPhone}
+                      onChange={handleInputChange}
+                      placeholder="01xxxxxxxxx"
+                      className={`w-full bg-neutral-50 hover:bg-neutral-100/70 focus:bg-white border border-neutral-200 focus:border-black transition-all rounded-xl text-xs py-2.5 px-3 font-medium outline-none ${isRTL ? 'text-right' : 'text-left'}`}
+                    />
+                  </div>
                 </div>
 
                 
@@ -443,26 +473,23 @@ export function QuickCheckoutModal({ isOpen, onClose, product, selectedSize, sel
                   </p>
                 )}
               </form>
-            )}
           </div>
 
-          {isAuthenticated && (
-            <div className="pt-4 border-t border-neutral-100 flex flex-col gap-3">
-              <div className="flex items-center gap-1.5 justify-center text-[10px] text-emerald-600 font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{isRTL ? 'الدفع عند الاستلام مباشر وموثق ١٠٠٪' : '100% Secure COD Direct Checkout'}</span>
-              </div>
-
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="w-full bg-black hover:bg-neutral-800 disabled:bg-neutral-400 text-white text-xs font-bold uppercase tracking-wider py-3.5 rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Truck className="w-4 h-4" />
-                {isSubmitting ? (isRTL ? 'جاري تسجيل طلبك...' : 'Processing...') : (isRTL ? 'تأكيد طلب الشراء السريع' : 'Confirm Express COD Order')}
-              </button>
+          <div className="pt-4 border-t border-neutral-100 flex flex-col gap-3">
+            <div className="flex items-center gap-1.5 justify-center text-[10px] text-emerald-600 font-bold">
+              <ShieldCheck className="w-4 h-4" />
+              <span>{isRTL ? 'الدفع عند الاستلام مباشر وموثق ١٠٠٪' : '100% Secure COD Direct Checkout'}</span>
             </div>
-          )}
+
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full bg-black hover:bg-neutral-800 disabled:bg-neutral-400 text-white text-xs font-bold uppercase tracking-wider py-3.5 rounded-2xl transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <Truck className="w-4 h-4" />
+              {isSubmitting ? (isRTL ? 'جاري تسجيل طلبك...' : 'Processing...') : (isRTL ? 'تأكيد طلب الشراء السريع' : 'Confirm Express COD Order')}
+            </button>
+          </div>
         </div>
 
       </div>

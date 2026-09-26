@@ -1,13 +1,22 @@
 import { RequestHandler } from "express";
 import { Product } from "../product-model";
-import type { IProductVariant } from "../product-model";
 
 interface IRequest {
     name: string;
     description: string;
     price: number;
     categoryID: string;
-    variants: IProductVariant[] | string; // Can arrive as JSON string from form-data
+    brand?: string;
+    processor?: string;
+    ram?: string;
+    storage?: string;
+    gpu?: string;
+    screen?: string;
+    grade?: string;
+    battery?: string;
+    warranty?: string;
+    stockQuantity?: number;
+    isFeatured?: boolean;
 }
 
 interface IResponse {
@@ -17,32 +26,16 @@ interface IResponse {
 
 export const addProduct: RequestHandler<{}, IResponse, IRequest> = async (req, res) => {
     try {
-        const { name, description, price, categoryID } = req.body;
+        const { 
+            name, description, price, categoryID,
+            brand, processor, ram, storage, gpu, screen, grade, battery, warranty, stockQuantity, isFeatured 
+        } = req.body;
         const userID = req.user?.id;
 
         if (!userID) {
             return res.status(401).json({ message: "Unauthorized: Admin ID not found" });
         }
 
-        // Parse variants — they may arrive as a JSON string from multipart/form-data
-        let variants: IProductVariant[] = [];
-        if (req.body.variants) {
-            if (typeof req.body.variants === "string") {
-                try {
-                    variants = JSON.parse(req.body.variants);
-                } catch {
-                    return res.status(400).json({ message: "Invalid variants format. Must be a valid JSON array." });
-                }
-            } else {
-                variants = req.body.variants;
-            }
-        }
-
-        if (!variants || variants.length === 0) {
-            return res.status(400).json({ message: "At least one variant (size & color) is required." });
-        }
-
-        // Parse offer if exists
         let offerObj: any = undefined;
         if ((req.body as any).offer) {
             if ((req.body as any).offer === "") {
@@ -76,8 +69,18 @@ export const addProduct: RequestHandler<{}, IResponse, IRequest> = async (req, r
             description,
             imageCover: imageCoverUrl,
             images: imagesUrls,
-            price,
-            variants,
+            price: Number(price),
+            brand: brand || "HP",
+            processor: processor || "Intel Core i7",
+            ram: ram || "16GB",
+            storage: storage || "512GB SSD",
+            gpu: gpu || "Intel Iris Xe",
+            screen: screen || '15.6" FHD',
+            grade: grade || "فرز أول (Grade A+)",
+            battery: battery || "حالة ممتازة 85%+",
+            warranty: warranty || "ضمان 14 يوم فحص واستبدال + 3 شهور",
+            stockQuantity: stockQuantity ? Number(stockQuantity) : 1,
+            isFeatured: isFeatured === true || (req.body as any).isFeatured === "true",
             categoryID,
             offer: offerObj,
             userID
@@ -92,4 +95,4 @@ export const addProduct: RequestHandler<{}, IResponse, IRequest> = async (req, r
         console.error(error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};

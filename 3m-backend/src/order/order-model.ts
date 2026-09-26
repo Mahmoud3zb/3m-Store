@@ -1,18 +1,19 @@
 import mongoose from "mongoose";
 
-// Updated item interface to track purchased variant
 interface Iitem {
     productID: mongoose.Types.ObjectId;
-    size: string;       // Size ordered
-    colorCode: string;  // Color code ordered
     quantity: number;
     price: number;
+    specsSummary?: string;
 }
 
 interface IShippingAddress {
-    street: string;
-    city: string;
+    fullName: string;
     phone: string;
+    altPhone?: string;
+    city: string;
+    street: string;
+    notes?: string;
 }
 
 interface IIssueReport {
@@ -22,8 +23,8 @@ interface IIssueReport {
     status: string;
 }
 
-interface IOrder extends mongoose.Document {
-    userID: mongoose.Types.ObjectId;
+export interface IOrder extends mongoose.Document {
+    userID?: mongoose.Types.ObjectId;
     items: Iitem[];
     shippingAddress: IShippingAddress;
     totalPrice: number;
@@ -43,7 +44,7 @@ const orderSchema = new mongoose.Schema<IOrder>({
     userID: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required: true
+        required: false
     },
     items: {
         type: [
@@ -52,14 +53,6 @@ const orderSchema = new mongoose.Schema<IOrder>({
                     type: mongoose.Schema.Types.ObjectId,
                     ref: "Product",
                     required: true
-                },
-                size: {
-                    type: String,
-                    required: [true, "Size is required for order items"]
-                },
-                colorCode: {
-                    type: String,
-                    required: [true, "Color code is required for order items"]
                 },
                 quantity: {
                     type: Number,
@@ -70,6 +63,10 @@ const orderSchema = new mongoose.Schema<IOrder>({
                     type: Number,
                     required: true,
                     min: [0, "Price cannot be negative"]
+                },
+                specsSummary: {
+                    type: String,
+                    default: ""
                 }
             }
         ],
@@ -86,9 +83,12 @@ const orderSchema = new mongoose.Schema<IOrder>({
         min: [0, "Total price cannot be negative"]
     },
     shippingAddress: {
-        street: { type: String, required: true },
+        fullName: { type: String, required: true },
+        phone: { type: String, required: true },
+        altPhone: { type: String, default: "" },
         city: { type: String, required: true },
-        phone: { type: String, required: true }
+        street: { type: String, required: true },
+        notes: { type: String, default: "" }
     }, 
     paymentMethod: {
         type: String,
@@ -128,3 +128,4 @@ const orderSchema = new mongoose.Schema<IOrder>({
 });
 
 export const Order = mongoose.model<IOrder>("Order", orderSchema);
+

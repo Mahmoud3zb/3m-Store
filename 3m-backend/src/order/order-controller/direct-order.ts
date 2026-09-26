@@ -14,39 +14,36 @@ export const directValidator = [
     body("quantity")
         .isInt({ min: 1 })
         .withMessage("Quantity must be at least 1"),
-    body("size")
+    body("shippingAddress.fullName")
         .trim()
         .notEmpty()
-        .withMessage("Size is required"),
-    body("colorCode")
-        .trim()
-        .notEmpty()
-        .withMessage("Color code is required"),
-    body("shippingAddress.street")
-        .trim()
-        .notEmpty()
-        .withMessage("Street is required"),
-    body("shippingAddress.city")
-        .trim()
-        .notEmpty()
-        .withMessage("City is required"),
+        .withMessage("Full name is required"),
     body("shippingAddress.phone")
         .trim()
         .notEmpty()
         .withMessage("Phone number is required"),
+    body("shippingAddress.city")
+        .trim()
+        .notEmpty()
+        .withMessage("City is required"),
+    body("shippingAddress.street")
+        .trim()
+        .notEmpty()
+        .withMessage("Street address is required"),
 ];
 
 interface IShippingAddress {
-    street: string;
-    city: string;
+    fullName: string;
     phone: string;
+    altPhone?: string;
+    city: string;
+    street: string;
+    notes?: string;
 }
 
 interface IDirectRequest {
     productID: string;
     quantity: number;
-    size: string;
-    colorCode: string;
     shippingAddress: IShippingAddress;
     promoCode?: string;
 }
@@ -58,11 +55,7 @@ interface IResponse {
 
 export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async (req, res) => {
     const userID = req.user?.id;
-    if (!userID) {
-        return res.status(401).json({ message: "Unauthorized: User ID not found" });
-    }
-
-    const { productID, quantity, size, colorCode, shippingAddress, promoCode } = req.body;
+    const { productID, quantity, shippingAddress, promoCode } = req.body;
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -75,33 +68,17 @@ export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async 
             return res.status(404).json({ message: "Product not found" });
         }
 
-        // Find the variant
-        const variant = product.variants.find(
-            (v) => v.size === size && v.colorCode === colorCode
-        );
-
-        if (!variant) {
+        if (product.stockQuantity < quantity) {
             await session.abortTransaction();
             session.endSession();
             return res.status(400).json({ 
-                message: `Variant (Size: ${size}, Color: ${colorCode}) is not available` 
+                message: `Insufficient stock for product: ${product.name}. Available: ${product.stockQuantity}` 
             });
         }
 
-        // Check stock
-        if (variant.quantity < quantity) {
-            await session.abortTransaction();
-            session.endSession();
-            return res.status(400).json({ 
-                message: `Insufficient stock for variant (Size: ${size}, Color: ${colorCode}). Available: ${variant.quantity}` 
-            });
-        }
-
-        // Deduct variant stock
-        variant.quantity -= quantity;
+        product.stockQuantity -= quantity;
         await product.save({ session });
 
-        // Calculate price (check if promotional offer is active)
         let itemPrice = product.price;
         if (product.offer && product.offer.discountedPrice !== undefined) {
             const now = new Date();
@@ -116,10 +93,9 @@ export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async 
 
         const orderItems = [{
             productID: product._id,
-            size,
-            colorCode,
             quantity,
-            price: itemPrice
+            price: itemPrice,
+            specsSummary: `${product.brand} ${product.name} | ${product.processor} | ${product.ram} RAM | ${product.storage}`
         }];
 
         let shippingFee = 0;
@@ -153,7 +129,7 @@ export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async 
         const finalTotal = Math.max(0, calculatedTotal - discount + shippingFee);
 
         const [newOrder] = await Order.create([{
-            userID,
+            userID: userID ? userID : undefined,
             items: orderItems,
             totalPrice: finalTotal,
             shippingAddress,
@@ -164,11 +140,13 @@ export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async 
         session.endSession();
 
         await newOrder.populate([
-            { path: "userID", select: "name email" },
-            { path: "items.productID", select: "name imageCover" }
+            { path: "items.productID", select: "name imageCover brand processor ram storage price" }
         ]);
 
-        // Send email alert to customer (non-blocking)
+        if (userID) {
+            await newOrder.populate({ path: "userID", select: "name email" });
+        }
+
         emailService.sendNewOrderCustomerAlert(newOrder).catch(err => console.error("Customer direct order email error:", err));
 
         return res.status(201).json({
@@ -183,3 +161,4 @@ export const directOrder: RequestHandler<{}, IResponse, IDirectRequest> = async 
         return res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
+

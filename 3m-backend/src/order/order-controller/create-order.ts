@@ -8,36 +8,45 @@ import { body } from "express-validator";
 import { emailService } from "../../services/email-service";
 
 export const validator = [
-    body("shippingAddress.street")
+    body("shippingAddress.fullName")
         .trim()
         .notEmpty()
-        .withMessage("Street is required"),
-    body("shippingAddress.city")
-        .trim()
-        .notEmpty()
-        .withMessage("City is required"),
+        .withMessage("Full name is required"),
     body("shippingAddress.phone")
         .trim()
         .notEmpty()
         .withMessage("Phone number is required"),
-    body("paymentMethod")
+    body("shippingAddress.city")
         .trim()
         .notEmpty()
-        .withMessage("Payment method is required")
+        .withMessage("City is required"),
+    body("shippingAddress.street")
+        .trim()
+        .notEmpty()
+        .withMessage("Address street details are required"),
+    body("paymentMethod")
+        .optional()
         .isIn(["cash", "card"])
         .withMessage("Payment method must be 'cash' or 'card'")
 ];
 
 interface IShippingAddress {
-    street: string;
-    city: string;
+    fullName: string;
     phone: string;
+    altPhone?: string;
+    city: string;
+    street: string;
+    notes?: string;
 }
 
 interface IRequest {
     shippingAddress: IShippingAddress;
     paymentMethod?: string;
     promoCode?: string;
+    guestCartItems?: Array<{
+        productID: string;
+        quantity: number;
+    }>;
 }
 
 interface IResponse {
@@ -47,20 +56,29 @@ interface IResponse {
 
 export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, res) => {
     const userID = req.user?.id;
-    if (!userID) {
-        return res.status(401).json({ message: "Unauthorized: User ID not found" });
-    }
+    const { shippingAddress, paymentMethod, promoCode, guestCartItems } = req.body;
 
-    const { shippingAddress, paymentMethod, promoCode } = req.body;
-
-    // Start a MongoDB session and transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        // 1. Retrieve the user's cart
-        const cart = await Cart.findOne({ userID }).session(session);
-        if (!cart || cart.items.length === 0) {
+        let itemsToProcess: Array<{ productID: string; quantity: number }> = [];
+
+        if (userID) {
+            const cart = await Cart.findOne({ userID }).session(session);
+            if (cart && cart.items.length > 0) {
+                itemsToProcess = cart.items.map(item => ({
+                    productID: item.productID.toString(),
+                    quantity: item.quantity
+                }));
+            }
+        }
+
+        if (itemsToProcess.length === 0 && guestCartItems && guestCartItems.length > 0) {
+            itemsToProcess = guestCartItems;
+        }
+
+        if (itemsToProcess.length === 0) {
             await session.abortTransaction();
             session.endSession();
             return res.status(400).json({ message: "Your cart is empty" });
@@ -69,8 +87,7 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
         let calculatedTotal = 0;
         const orderItems: any[] = [];
 
-        // 2. Validate variants & stock levels for each cart item
-        for (const item of cart.items) {
+        for (const item of itemsToProcess) {
             const product = await Product.findById(item.productID).session(session);
             if (!product) {
                 await session.abortTransaction();
@@ -78,46 +95,17 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
                 return res.status(400).json({ message: "Product no longer exists" });
             }
 
-            // Cast item to allow retrieving size and colorCode
-            const cartItem = item as any;
-            const requestedSize = cartItem.size;
-            const requestedColorCode = cartItem.colorCode;
-
-            if (!requestedSize || !requestedColorCode) {
+            if (product.stockQuantity < item.quantity) {
                 await session.abortTransaction();
                 session.endSession();
                 return res.status(400).json({ 
-                    message: `Missing variant selection (size/color) for product: ${product.name}` 
+                    message: `Insufficient stock for product: ${product.name}. Available: ${product.stockQuantity}, Requested: ${item.quantity}` 
                 });
             }
 
-            // Find matching variant on the product
-            const variant = product.variants.find(
-                (v) => v.size === requestedSize && v.colorCode === requestedColorCode
-            );
-
-            if (!variant) {
-                await session.abortTransaction();
-                session.endSession();
-                return res.status(400).json({ 
-                    message: `Variant (Size: ${requestedSize}, Color: ${requestedColorCode}) is not available for product: ${product.name}` 
-                });
-            }
-
-            // Verify if requested quantity is available
-            if (variant.quantity < item.quantity) {
-                await session.abortTransaction();
-                session.endSession();
-                return res.status(400).json({ 
-                    message: `Insufficient stock for product ${product.name} (Variant - Size: ${requestedSize}, Color: ${requestedColorCode}). Available: ${variant.quantity}, Requested: ${item.quantity}` 
-                });
-            }
-
-            // 3. Deduct stock from the specific variant
-            variant.quantity -= item.quantity;
+            product.stockQuantity -= item.quantity;
             await product.save({ session });
 
-            // 4. Calculate prices (applying active promotional offers)
             let itemPrice = product.price;
             if (product.offer && product.offer.discountedPrice !== undefined) {
                 const now = new Date();
@@ -132,14 +120,12 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
 
             orderItems.push({
                 productID: product._id,
-                size: requestedSize,
-                colorCode: requestedColorCode,
                 quantity: item.quantity,
-                price: itemPrice
+                price: itemPrice,
+                specsSummary: `${product.brand} ${product.name} | ${product.processor} | ${product.ram} RAM | ${product.storage}`
             });
         }
 
-        // Calculate shipping fee
         let shippingFee = 0;
         const city = shippingAddress?.city || "";
         const cairoGiza = ['القاهرة', 'الجيزة', 'Cairo', 'Giza'];
@@ -156,7 +142,6 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
             shippingFee = 60;
         }
 
-        // Promo code discount calculation
         let discount = 0;
         if (promoCode) {
             const promo = await Promo.findOne({ code: promoCode.trim().toUpperCase(), isActive: true }).session(session);
@@ -171,29 +156,29 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
 
         const finalTotal = Math.max(0, calculatedTotal - discount + shippingFee);
 
-        // 5. Create Order inside the transaction
         const [newOrder] = await Order.create([{
-            userID,
+            userID: userID ? userID : undefined,
             items: orderItems,
             totalPrice: finalTotal,
             shippingAddress,
             paymentMethod: paymentMethod || "cash"
         }], { session });
 
-        // 6. Clear user's Cart inside the transaction
-        await Cart.findOneAndUpdate({ userID }, { items: [] }, { session });
+        if (userID) {
+            await Cart.findOneAndUpdate({ userID }, { items: [] }, { session });
+        }
 
-        // Commit all changes
         await session.commitTransaction();
         session.endSession();
 
-        // Populate order details for response payload
         await newOrder.populate([
-            { path: "userID", select: "name email" },
-            { path: "items.productID", select: "name imageCover" }
+            { path: "items.productID", select: "name imageCover brand processor ram storage price" }
         ]);
 
-        // Send email alert to customer (non-blocking)
+        if (userID) {
+            await newOrder.populate({ path: "userID", select: "name email" });
+        }
+
         emailService.sendNewOrderCustomerAlert(newOrder).catch(err => console.error("Customer order email error:", err));
 
         return res.status(201).json({
@@ -202,10 +187,10 @@ export const createOrder: RequestHandler<{}, IResponse, IRequest> = async (req, 
         });
 
     } catch (error: any) {
-        // Abort the transaction in case of any failures
         await session.abortTransaction();
         session.endSession();
         console.error("Create Order Transaction Error:", error);
         return res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
+

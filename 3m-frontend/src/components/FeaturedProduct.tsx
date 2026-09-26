@@ -146,55 +146,26 @@ export const FeaturedProduct: React.FC<FeaturedProductProps> = () => {
           </p>
 
           
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4 text-sm font-bold">
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="text-neutral-400 underline hover:text-[#111] transition-colors"
-              >
-                {t.sizeGuide}
-              </a>
-              <span className="text-black">{t.selectSize}</span>
+          {(activeProduct.processor || activeProduct.ram || activeProduct.storage) && (
+            <div className="mb-8 p-4 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl">
+              <span className="text-xs font-bold text-neutral-400 block mb-2">
+                {language === 'ar' ? 'مواصفات الجهاز:' : 'Hardware Specs:'}
+              </span>
+              <div className="flex flex-wrap gap-2 text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                {activeProduct.processor && <span className="bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2.5 py-1 rounded-md font-bold">{activeProduct.processor}</span>}
+                {activeProduct.ram && <span className="bg-neutral-200 dark:bg-neutral-800 px-2.5 py-1 rounded-md">{activeProduct.ram}</span>}
+                {activeProduct.storage && <span className="bg-neutral-200 dark:bg-neutral-800 px-2.5 py-1 rounded-md">{activeProduct.storage}</span>}
+                {activeProduct.grade && <span className="bg-amber-500 text-black px-2.5 py-1 rounded-md font-bold">{activeProduct.grade}</span>}
+              </div>
             </div>
-            <div className={`flex gap-3 text-sm font-serif-en ${language === 'ar' ? 'justify-end' : 'justify-start'}`} dir="ltr">
-              {sizes.map((size) => {
-                if (size.disabled) {
-                  return (
-                    <button
-                      key={size.label}
-                      disabled
-                      className="w-12 h-12 border border-gray-200 text-gray-300 flex justify-center items-center cursor-not-allowed"
-                    >
-                      {size.label}
-                    </button>
-                  )
-                }
-                const isActive = selectedSize === size.label
-                return (
-                  <button
-                    key={size.label}
-                    onClick={() => setSelectedSize(size.label)}
-                    className={`w-12 h-12 border flex justify-center items-center transition-colors cursor-pointer ${
-                      isActive
-                        ? 'border-black bg-black text-white'
-                        : 'border-gray-300 text-black hover:border-black'
-                    }`}
-                  >
-                    {size.label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          )}
 
-          
           <div className="flex gap-4 border-t border-gray-200 pt-8">
             <Link
               to={`/product/${activeProduct._id}`}
-              className="flex-1 bg-neutral-950 text-white py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors cursor-pointer rounded-xl text-center block"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 text-neutral-950 py-4 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer rounded-xl text-center block shadow-lg shadow-amber-500/20"
             >
-              {language === 'ar' ? 'اختر المقاس واللون' : 'Select Size & Color'}
+              {language === 'ar' ? 'عرض التفاصيل والشراء' : 'View Details & Buy'}
             </Link>
             <button
               onClick={() => toggleWishlist(activeProduct)}

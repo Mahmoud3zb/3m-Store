@@ -1,9 +1,12 @@
 import { api } from './api';
 
 export interface IShippingAddress {
-  street: string;
-  city: string;
+  fullName: string;
   phone: string;
+  altPhone?: string;
+  city: string;
+  street: string;
+  notes?: string;
 }
 
 export interface IOrderItem {
@@ -11,12 +14,15 @@ export interface IOrderItem {
     _id: string;
     name: string;
     imageCover?: string;
+    brand?: string;
+    processor?: string;
+    ram?: string;
+    storage?: string;
     price: number;
   };
-  size: string;
-  colorCode: string;
   quantity: number;
   price: number;
+  specsSummary?: string;
 }
 
 export interface IIssueReport {
@@ -28,7 +34,7 @@ export interface IIssueReport {
 
 export interface IOrder {
   _id: string;
-  userID: {
+  userID?: {
     _id: string;
     name: string;
     email: string;
@@ -88,15 +94,31 @@ export interface IAnalyticsData {
 }
 
 export const orderService = {
-  createOrder: async (shippingAddress: IShippingAddress, paymentMethod: string, promoCode?: string): Promise<CreateOrderResponse> => {
-    const response = await api.post<CreateOrderResponse>('/order', { shippingAddress, paymentMethod, promoCode });
+  createOrder: async (
+    shippingAddress: IShippingAddress, 
+    paymentMethod?: string, 
+    promoCode?: string,
+    guestCartItems?: Array<{ productID: string; quantity: number }>
+  ): Promise<CreateOrderResponse> => {
+    const response = await api.post<CreateOrderResponse>('/order', { shippingAddress, paymentMethod, promoCode, guestCartItems });
     return response.data;
   },
 
-  createDirectOrder: async (productID: string, quantity: number, size: string, colorCode: string, shippingAddress: IShippingAddress, promoCode?: string): Promise<CreateOrderResponse> => {
-    const response = await api.post<CreateOrderResponse>('/order/direct', { productID, quantity, size, colorCode, shippingAddress, promoCode });
+  createDirectOrder: async (
+    productID: string, 
+    quantity: number, 
+    shippingAddress: IShippingAddress, 
+    promoCode?: string
+  ): Promise<CreateOrderResponse> => {
+    const response = await api.post<CreateOrderResponse>('/order', { 
+      shippingAddress, 
+      paymentMethod: 'cash', 
+      promoCode, 
+      guestCartItems: [{ productID, quantity }] 
+    });
     return response.data;
   },
+
 
   getUserOrders: async (): Promise<IOrder[]> => {
     const response = await api.get<{ message: string; data: IOrder[] }>('/order/user');
