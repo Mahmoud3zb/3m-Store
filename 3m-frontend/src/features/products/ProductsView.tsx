@@ -165,8 +165,8 @@ export function ProductsView() {
                     onClick={() => handleCategorySelect('')}
                     className={`text-xs uppercase tracking-wider transition-colors cursor-pointer block w-full ${language === 'ar' ? 'text-right' : 'text-left'} ${
                       !selectedCategory 
-                        ? `text-black font-extrabold ${language === 'ar' ? 'border-r-2 border-black pr-2' : 'border-l-2 border-black pl-2'}` 
-                        : 'text-neutral-500 hover:text-black'
+                        ? `text-amber-600 font-extrabold ${language === 'ar' ? 'border-r-2 border-amber-500 pr-2.5' : 'border-l-2 border-amber-500 pl-2.5'}` 
+                        : 'text-neutral-600 hover:text-amber-600'
                     }`}
                   >
                     {t.allProducts}
@@ -184,8 +184,8 @@ export function ProductsView() {
                         onClick={() => handleCategorySelect(cat._id)}
                         className={`text-xs uppercase tracking-wider transition-colors cursor-pointer block w-full ${language === 'ar' ? 'text-right' : 'text-left'} ${
                           selectedCategory === cat._id 
-                            ? `text-black font-extrabold ${language === 'ar' ? 'border-r-2 border-black pr-2' : 'border-l-2 border-black pl-2'}` 
-                            : 'text-neutral-500 hover:text-black'
+                            ? `text-amber-600 font-extrabold ${language === 'ar' ? 'border-r-2 border-amber-500 pr-2.5' : 'border-l-2 border-amber-500 pl-2.5'}` 
+                            : 'text-neutral-600 hover:text-amber-600'
                         }`}
                       >
                         {cat.name}
@@ -335,13 +335,13 @@ export function ProductsView() {
                   : (language === 'ar' ? 'مجموعة غير محددة' : 'General Collection');
 
                 return (
-                  <div key={product._id} className="group relative flex flex-col justify-between bg-white p-3 rounded-3xl border border-neutral-100/40 hover:shadow-md transition-all duration-300">
+                  <div key={product._id} className="group relative flex flex-col justify-between bg-white p-3.5 rounded-2xl border border-neutral-200/80 hover:border-amber-500/40 hover:shadow-xl transition-all duration-300">
                     <div>
                      
-                      <div className="aspect-[3/4] bg-[#F3F3F3] overflow-hidden relative mb-4 rounded-2xl border border-neutral-100/50">
+                      <div className="aspect-[4/3] bg-neutral-100 overflow-hidden relative mb-3.5 rounded-xl border border-neutral-200/60">
                         <Link to={`/product/${product._id}`} className="block w-full h-full">
                           <img
-                            src={product.imageCover || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80'}
+                            src={product.imageCover || '/p1.jpeg'}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             loading="lazy"

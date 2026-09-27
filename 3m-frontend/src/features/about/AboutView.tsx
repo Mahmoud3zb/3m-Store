@@ -61,16 +61,25 @@ export function AboutView() {
         </div>
         
        
-        <div className={`lg:col-span-5 bg-black text-white p-8 rounded-2xl flex flex-col justify-between min-h-[220px] shadow-sm select-none ${language === 'ar' ? 'text-right' : 'text-left'}`}>
+        <div className={`lg:col-span-5 bg-neutral-950 text-white p-8 rounded-2xl flex flex-col justify-between min-h-[220px] border border-amber-500/20 shadow-xl select-none ${language === 'ar' ? 'text-right' : 'text-left'}`}>
           <div className="space-y-2">
-            <span className="text-[10px] text-neutral-400 uppercase tracking-widest block">{t.brandConcept}</span>
-            <h3 className="text-xl font-serif-en tracking-[0.2em] font-black">3M STUDIOS.</h3>
+            <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-widest block">{t.brandConcept}</span>
+            <div className="flex items-center gap-2" dir="ltr">
+              <img 
+                src="/newLogoLapHub.png" 
+                alt="LapHub" 
+                className="h-9 w-9 object-contain" 
+              />
+              <span className="text-2xl font-sans font-black tracking-wider text-amber-500">
+                Lap<span className="text-white">Hub</span>
+              </span>
+            </div>
           </div>
-          <p className="text-[10px] text-neutral-300 leading-relaxed">
+          <p className="text-xs text-neutral-300 leading-relaxed font-medium">
             "{t.brandQuote}"
           </p>
-          <div className="border-t border-neutral-800 pt-4 text-[9px] text-neutral-500 tracking-wider">
-            SINCE 2026
+          <div className="border-t border-neutral-800/80 pt-4 text-[9px] text-amber-500/60 font-bold tracking-widest uppercase">
+            EST. 2026 • HIGH-PERFORMANCE LAPTOPS
           </div>
         </div>
       </div>

@@ -22,7 +22,7 @@ export const HeroAsymmetrical: React.FC<HeroAsymmetricalProps> = ({
         <img
           src="/bg.jpg"
           alt="LapHub Banner"
-          className="w-full h-full object-cover object-center opacity-40 filter contrast-125"
+          className="w-full h-full object-cover object-center opacity-9000 filter contrast-225"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-neutral-950 via-neutral-950/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/60" />

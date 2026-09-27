@@ -34,9 +34,9 @@ export function HomeView() {
 
       <NewArrivals />
 
-      <StaggeredGallery
+      {/* <StaggeredGallery
         onItemClick={handleItemClick}
-      />
+      /> */}
 
       <BrandValues />
 

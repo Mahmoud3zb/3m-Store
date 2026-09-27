@@ -116,14 +116,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const linkClassName = ({ isActive }: { isActive: boolean }) =>
-    `relative text-[13px] font-medium tracking-wide uppercase py-1 text-neutral-600 hover:text-black transition-colors ${
-      isActive ? 'text-black font-semibold after:absolute after:bottom-0 after:right-0 after:left-0 after:h-[2px] after:bg-black' : ''
+    `relative text-[13px] font-bold tracking-wide py-1 text-neutral-700 hover:text-amber-600 transition-colors ${
+      isActive ? 'text-amber-600 font-extrabold after:absolute after:bottom-0 after:right-0 after:left-0 after:h-[2.5px] after:bg-amber-500 after:rounded-full' : ''
     }`;
 
   return (
     <>
       <nav 
-        className="fixed right-0 left-0 w-full h-20 bg-white/95 backdrop-blur-md border-b border-neutral-100 z-50 px-6 md:px-12 flex justify-between items-center text-neutral-900"
+        className="fixed right-0 left-0 w-full h-20 bg-white/95 backdrop-blur-md border-b border-amber-500/20 shadow-sm z-50 px-6 md:px-12 flex justify-between items-center text-neutral-900 transition-all duration-300"
         style={{ 
           top: isVisible ? `${announcementHeight}px` : '-80px',
           transition: 'top 0.3s ease-in-out'
@@ -182,22 +182,22 @@ export const Navbar: React.FC<NavbarProps> = ({
        
         <div className="flex items-center gap-6">
           <div ref={searchRef} className="relative hidden md:block">
-            <form onSubmit={handleSearchSubmit} className="flex items-center bg-neutral-50 hover:bg-neutral-100 focus-within:bg-white border border-neutral-200 focus-within:border-black rounded-full px-3 py-1.5 transition-all duration-300 w-36 md:w-56">
-              <Search className={`w-3.5 h-3.5 text-neutral-400 flex-shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+            <form onSubmit={handleSearchSubmit} className="flex items-center bg-neutral-100/80 hover:bg-neutral-100 focus-within:bg-white border border-neutral-200/80 focus-within:border-amber-500 focus-within:ring-2 focus-within:ring-amber-500/20 rounded-full px-3.5 py-1.5 transition-all duration-300 w-44 md:w-64 shadow-inner">
+              <Search className={`w-4 h-4 text-amber-500 flex-shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
               <input
                 type="text"
                 placeholder={t.searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
-                className={`text-[11px] bg-transparent border-none outline-none w-full placeholder-neutral-400 text-neutral-800 font-sans ${language === 'ar' ? 'text-right' : 'text-left'}`}
+                className={`text-[11px] bg-transparent border-none outline-none w-full placeholder-neutral-400 text-neutral-900 font-medium ${language === 'ar' ? 'text-right' : 'text-left'}`}
               />
             </form>
 
             {/* Suggestions Dropdown */}
             {showSuggestions && searchQuery.trim() && (
               <div 
-                className={`absolute top-full mt-2 w-72 md:w-80 bg-white/95 backdrop-blur-md border border-neutral-100 rounded-2xl shadow-xl z-50 overflow-hidden transition-all duration-200 ${
+                className={`absolute top-full mt-2 w-72 md:w-80 bg-white/95 backdrop-blur-md border border-amber-500/20 rounded-2xl shadow-2xl z-50 overflow-hidden transition-all duration-200 ${
                   language === 'ar' ? 'right-0' : 'left-0'
                 }`}
                 dir={language === 'ar' ? 'rtl' : 'ltr'}
@@ -226,11 +226,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                         key={product._id}
                         type="button"
                         onClick={() => handleSuggestionClick(product._id)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50 transition-colors cursor-pointer ${
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-amber-500/5 transition-colors cursor-pointer ${
                           language === 'ar' ? 'text-right' : 'text-left'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-neutral-100 flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-neutral-200 flex-shrink-0">
                           <img 
                             src={product.imageCover || '/p1.jpeg'} 
                             alt={product.name} 
@@ -241,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           <h4 className="text-[11px] font-bold text-neutral-800 truncate">
                             {product.name}
                           </h4>
-                          <span className="text-[10px] text-neutral-500 font-serif-en">
+                          <span className="text-[10px] text-amber-600 font-bold font-serif-en">
                             {product.price} {t.currency}
                           </span>
                         </div>
@@ -260,35 +260,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-4">
             <Link 
               to="/favorites" 
-              className="hidden md:block relative p-1 transition-all duration-300" 
+              className="hidden md:block relative p-1.5 transition-all duration-300 rounded-full hover:bg-amber-500/10" 
               title="المفضلة"
             >
               <Heart 
-                className={`w-[19px] h-[19px] transition-all duration-300 ${
+                className={`w-5 h-5 transition-all duration-300 ${
                   isFavoritesActive 
-                    ? 'text-black fill-black scale-105' 
-                    : 'text-neutral-800 fill-none hover:text-black hover:scale-105'
+                    ? 'text-amber-500 fill-amber-500 scale-105' 
+                    : 'text-neutral-700 fill-none hover:text-amber-500 hover:scale-105'
                 }`} 
               />
             </Link>
 
             <Link 
               to="/profile" 
-              className="hidden md:block relative p-1 transition-all duration-300" 
+              className="hidden md:block relative p-1.5 transition-all duration-300 rounded-full hover:bg-amber-500/10" 
               title="حسابي"
             >
               <User 
-                className={`w-[19px] h-[19px] transition-all duration-300 ${
+                className={`w-5 h-5 transition-all duration-300 ${
                   isProfileActive 
-                    ? 'text-black fill-black scale-105' 
-                    : 'text-neutral-800 fill-none hover:text-black hover:scale-105'
+                    ? 'text-amber-500 fill-amber-500 scale-105' 
+                    : 'text-neutral-700 fill-none hover:text-amber-500 hover:scale-105'
                 }`} 
               />
             </Link>
 
             <button 
               onClick={toggleCartDrawer}
-              className="relative p-1 transition-all duration-300 cursor-pointer" 
+              className="relative p-1.5 transition-all duration-300 cursor-pointer rounded-full hover:bg-amber-500/10" 
               title="السلة"
             >
               <svg 
@@ -298,10 +298,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 stroke="currentColor" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                className={`w-[19px] h-[19px] transition-all duration-300 ${
+                className={`w-5 h-5 transition-all duration-300 ${
                   isCartActive 
-                    ? 'text-black scale-105' 
-                    : 'text-neutral-800 hover:text-black hover:scale-105'
+                    ? 'text-amber-500 scale-105' 
+                    : 'text-neutral-700 hover:text-amber-500 hover:scale-105'
                 }`}
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -319,22 +319,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </svg>
               {cartCount > 0 && (
-                <span className="absolute -top-1 -left-1 bg-black text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center font-serif-en border border-white">
+                <span className="absolute -top-1 -left-1 bg-amber-500 text-neutral-950 text-[9px] font-black rounded-full w-4.5 h-4.5 flex items-center justify-center font-serif-en border-2 border-white shadow-sm">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            <span className="h-4 w-[1px] bg-neutral-200 hidden md:block" />
+            <span className="h-4 w-[1px] bg-neutral-200/80 hidden md:block" />
 
             <div className="hidden md:block">
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
-                  <span className="hidden md:inline font-sans text-[11px] font-medium text-neutral-600">{t.welcomeUser}{user?.name?.split(' ')[0]}</span>
+                  <span className="hidden md:inline font-sans text-[11px] font-bold text-neutral-700">{t.welcomeUser}{user?.name?.split(' ')[0]}</span>
                   <button
                     onClick={() => logout()}
                     title={t.logout}
-                    className="bg-neutral-100 hover:bg-neutral-200 text-neutral-800 px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors cursor-pointer"
+                    className="bg-neutral-100 hover:bg-neutral-200 text-neutral-800 px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-colors cursor-pointer"
                   >
                     {t.logout}
                   </button>
@@ -342,7 +342,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ) : (
                 <button
                   onClick={onLoginClick}
-                  className="bg-black text-white hover:bg-black/90 px-4 py-1.5 rounded-full text-[11px] font-bold transition-colors cursor-pointer"
+                  className="bg-neutral-900 hover:bg-amber-500 hover:text-neutral-950 text-white px-5 py-2 rounded-full text-[11px] font-bold transition-all duration-300 cursor-pointer shadow-md hover:shadow-amber-500/20"
                 >
                   {t.login}
                 </button>
@@ -351,7 +351,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
-              className="font-sans bg-neutral-100 hover:bg-neutral-200 text-neutral-800 w-8 h-8 rounded-full text-[10px] font-extrabold transition-all cursor-pointer flex items-center justify-center uppercase tracking-wider"
+              className="font-sans bg-neutral-100/90 hover:bg-amber-500/10 hover:text-amber-600 border border-neutral-200/60 text-neutral-800 w-8 h-8 rounded-full text-[10px] font-extrabold transition-all cursor-pointer flex items-center justify-center uppercase tracking-wider"
               title={language === 'ar' ? 'English' : 'العربية'}
             >
               {language === 'ar' ? 'EN' : 'AR'}
@@ -383,10 +383,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Link
               to="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className=" font-sans font-black tracking-[0.25em] text-xl text-black hover:opacity-85 transition-opacity"
+              className="flex items-center gap-2 hover:opacity-90 transition-opacity"
               dir="ltr"
             >
-              3M STORE
+              <img 
+                src="/newLogoLapHub.png" 
+                alt="LapHub" 
+                className="h-8 w-8 object-contain" 
+              />
+              <span className="text-lg font-sans font-black tracking-wider text-amber-500">
+                Lap<span className="text-neutral-900">Hub</span>
+              </span>
             </Link>
             <div className="flex items-center gap-3">
               <button
