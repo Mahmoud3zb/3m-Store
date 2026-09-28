@@ -415,34 +415,34 @@ export const Navbar: React.FC<NavbarProps> = ({
 
          
           {isAuthenticated ? (
-            <div className="flex items-center gap-3.5 bg-neutral-50 border border-neutral-100 p-4 rounded-2xl mb-8">
-              <div className="w-12 h-12 bg-neutral-200 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center border border-neutral-300/40">
+            <div className="flex items-center gap-3.5 bg-neutral-950 text-white border border-amber-500/20 p-4 rounded-2xl mb-6 shadow-md">
+              <div className="w-12 h-12 bg-neutral-900 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center border border-amber-500/30">
                 {user?.profileImage && !user.profileImage.includes('default-avatar') ? (
                   <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-sm font-extrabold font-serif-en text-neutral-700 uppercase">
+                  <span className="text-sm font-black font-serif-en text-amber-400 uppercase">
                     {user?.name?.charAt(0)}
                   </span>
                 )}
               </div>
               <div className="space-y-0.5 overflow-hidden">
-                <h4 className="text-[12px] font-bold text-neutral-900 truncate">{t.welcomeUser}{user?.name}</h4>
-                <p className="text-[10px] text-neutral-400 truncate font-sans">{user?.email}</p>
+                <h4 className="text-[12px] font-bold text-white truncate">{t.welcomeUser}{user?.name}</h4>
+                <p className="text-[10px] text-amber-500/80 truncate font-sans">{user?.email}</p>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3.5 bg-neutral-50 border border-neutral-100 p-4 rounded-2xl mb-8">
-              <div className="w-12 h-12 bg-neutral-200 rounded-full flex-shrink-0 flex items-center justify-center">
-                <User className="w-5 h-5 text-neutral-500" />
+            <div className="flex items-center gap-3.5 bg-neutral-950 text-white border border-amber-500/20 p-4 rounded-2xl mb-6 shadow-md">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-full flex-shrink-0 flex items-center justify-center border border-amber-500/20 text-amber-400">
+                <User className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
-                <h4 className="text-[12px] font-bold text-neutral-900">{t.welcomeUser}</h4>
+                <h4 className="text-[12px] font-bold text-white">{t.welcomeUser}</h4>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     if (onLoginClick) onLoginClick();
                   }}
-                  className="flex items-center gap-1 bg-black text-white hover:bg-neutral-800 text-[9px] font-extrabold px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm animate-pulse"
+                  className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-[10px] font-extrabold px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-md shadow-amber-500/20"
                 >
                   <LogIn className="w-3 h-3" />
                   {t.loginRegister}
@@ -452,39 +452,39 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
 
           
-          <nav className="flex flex-col gap-5">
+          <nav className="flex flex-col gap-4">
             <Link
               to="/"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+              className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
             >
               {t.home}
             </Link>
             <Link
               to="/shop"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+              className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
             >
               {t.shop}
             </Link>
             <Link
               to="/about"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+              className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
             >
               {t.aboutUs}
             </Link>
             <Link
               to="/favorites"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+              className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
             >
               {t.favorites}
             </Link>
             <Link
               to="/profile"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+              className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
             >
               {t.profile}
             </Link>
@@ -492,7 +492,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Link
                 to="/admin"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors block border-b border-neutral-50 pb-2"
+                className="text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors block border-b border-neutral-100 pb-2.5"
               >
                 {t.dashboard}
               </Link>
@@ -500,11 +500,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Link
               to="/cart"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex justify-between items-center text-[13px] font-bold text-neutral-800 hover:text-black py-1 transition-colors border-b border-neutral-50 pb-2"
+              className="flex justify-between items-center text-[13px] font-bold text-neutral-800 hover:text-amber-600 py-1 transition-colors border-b border-neutral-100 pb-2.5"
             >
               <span>{t.shoppingBag}</span>
               {cartCount > 0 && (
-                <span className="bg-black text-white text-[9px] font-bold rounded-full w-5 h-5 flex items-center justify-center font-serif-en">
+                <span className="bg-amber-500 text-neutral-950 text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center font-serif-en border border-white shadow-sm">
                   {cartCount}
                 </span>
               )}
